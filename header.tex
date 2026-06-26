@@ -1,0 +1,251 @@
+% !TeX root = main.tex
+\documentclass[14pt]{scrartcl}
+% !TeX TXS-program:bibliography = txs:///biber
+\let\counterwithout\relax
+\let\counterwithin\relax
+%\usepackage{lmodern}
+%\usepackage{minted}
+\usepackage{float}
+\usepackage{xcolor}
+
+\definecolor{listingrule}{HTML}{B0B0B0}
+\definecolor{linenocolor}{HTML}{909090}
+
+\usepackage{extsizes}
+\usepackage{subfig}
+\usepackage[export]{adjustbox}
+\usepackage{tocvsec2}
+\usepackage[subfigure]{tocloft}
+\usepackage[newfloat,cache=false,outputdir=build]{minted}
+\setminted{
+  style=refal,
+  fontsize=\small,                 % \footnotesize if your column is narrow
+  linenos=true,
+  numbersep=8pt,                   % gap between numbers and code
+  frame=lines,                     % top + bottom rules only
+  framesep=2mm,                    % padding inside the frame
+  rulecolor=\color{listingrule},
+  breaklines=true,
+  breakanywhere=false,             % only break at sensible points
+  tabsize=2,
+  autogobble=true,                 % strip common leading whitespace
+  xleftmargin=1em,                 % indent the whole block slightly
+  xrightmargin=0pt,
+}
+
+\AtBeginEnvironment{figure}{\vspace{0.5cm}}
+\AtBeginEnvironment{table}{\vspace{0.5cm}}
+\AtBeginEnvironment{listing}{\vspace{0.5cm}}
+\AtBeginEnvironment{algorithm}{\vspace{0.5cm}}
+\AtBeginEnvironment{minted}{\vspace{-0.5cm}}
+
+% Do not load fancyvrb after minted: minted pulls it in via fvextra, and a
+% second load breaks \end{minted} scanning (corrupt \jobname.pyg, FancyVerb errors).
+\usepackage{ulem,bm,mathrsfs}
+\usepackage{pdflscape}
+\usepackage{geometry}
+\geometry{a4paper,tmargin=2cm,bmargin=2cm,lmargin=3cm,rmargin=1cm}
+\usepackage{amsthm,amsfonts,amsmath,amssymb,amscd}
+\usepackage{mathtools}
+\IfFileExists{footmisc.sty}{\usepackage[perpage]{footmisc}}{}
+\KOMAoptions{fontsize=14pt}
+
+\makeatletter
+\def\showfontsize{\f@size{} point}
+\makeatother
+
+\makeatletter
+\setlength{\@fptop}{0pt}
+\makeatother
+
+\usepackage{iftex}
+\ifPDFTeX
+    \IfFileExists{tempora.sty}{\usepackage{tempora}}{\usepackage{lmodern}}
+    \usepackage{cmap}
+    \usepackage[T1]{fontenc}
+    \usepackage[utf8]{inputenc}
+    \usepackage[english,main=russian]{babel}
+\else
+    \usepackage{fontspec}
+    \usepackage{polyglossia}
+    \setdefaultlanguage{russian}
+    \setotherlanguage{english}
+    \defaultfontfeatures{Ligatures=TeX}
+    \IfFontExistsTF{Times New Roman}{\setmainfont{Times New Roman}}{\setmainfont{TeX Gyre Termes}}
+    \IfFontExistsTF{Times New Roman}{\newfontfamily\cyrillicfont{Times New Roman}}{\newfontfamily\cyrillicfont{TeX Gyre Termes}}
+    \IfFontExistsTF{Arial}{\setsansfont{Arial}}{\setsansfont{TeX Gyre Heros}}
+    \IfFontExistsTF{Courier New}{\setmonofont{Courier New}}{\setmonofont{DejaVu Sans Mono}}
+    \IfFontExistsTF{Arial}{\newfontfamily\cyrillicfontsf{Arial}}{\newfontfamily\cyrillicfontsf{TeX Gyre Heros}}
+    \IfFontExistsTF{Courier New}{\newfontfamily\cyrillicfonttt{Courier New}}{\newfontfamily\cyrillicfonttt{DejaVu Sans Mono}}
+\fi
+\usepackage{indentfirst}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{soulutf8}
+\usepackage{graphicx}
+\usepackage{tikz,nicematrix}
+\usetikzlibrary{automata, positioning, arrows,patterns, arrows.meta,shadows,shapes,datavisualization,decorations.pathreplacing}
+\usetikzlibrary{arrows.meta,patterns.meta,graphs}
+\usetikzlibrary{fit, calc}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{setspace}
+\AtBeginDocument{\renewcommand{\listingname}{Листинг}}
+\usepackage[figure,table,section]{totalcount}
+\DeclareTotalCounter{listing}
+\IfFileExists{totcount.sty}{\usepackage{totcount}}{}
+\IfFileExists{totpages.sty}{\usepackage{totpages}}{}
+\linespread{1.3}
+\usepackage{hyperref}
+\sloppy
+\clubpenalty=10000
+\widowpenalty=10000
+
+\makeatletter
+\let\@@scshape=\scshape
+\renewcommand{\scshape}{%
+  \ifnum\strcmp{\f@series}{bx}=\z@
+    \usefont{T1}{cmr}{bx}{sc}%
+  \else
+    \ifnum\strcmp{\f@shape}{it}=\z@
+      \fontshape{scsl}\selectfont
+    \else
+      \@@scshape
+    \fi
+  \fi}
+\makeatother
+
+\usepackage{ifthen}
+\newcounter{intvl}
+\newcounter{otstup}
+\newcounter{contnumeq}
+\newcounter{contnumfig}
+\newcounter{contnumtab}
+\newcounter{pgnum}
+\newcounter{bibliosel}
+\newcounter{chapstyle}
+\newcounter{headingdelim}
+\newcounter{headingalign}
+\newcounter{headingsize}
+\newcounter{tabcap}
+\newcounter{tablaba}
+\newcounter{tabtita}
+
+\setcounter{intvl}{3}
+\setcounter{otstup}{0}
+\setcounter{contnumeq}{1}
+\setcounter{contnumfig}{1}
+\setcounter{contnumtab}{1}
+\setcounter{pgnum}{0}
+\setcounter{bibliosel}{1}
+\setcounter{chapstyle}{1}
+\setcounter{headingdelim}{1}
+\setcounter{headingalign}{0}
+\setcounter{headingsize}{0}
+\setcounter{tabcap}{0}
+\setcounter{tablaba}{2}
+\setcounter{tabtita}{1}
+
+\DeclareCaptionLabelSeparator*{emdash}{~--- }
+\AddToHook{begindocument/end}{%
+  \captionsetup[figure]{labelsep=emdash,font=onehalfspacing,position=bottom}%
+  \captionsetup[listing]{position=top,labelsep=emdash}%
+}
+
+\ifthenelse{\equal{\thetabcap}{0}}{%
+    \newcommand{\tabcapalign}{\raggedright}
+}{}
+\ifthenelse{\equal{\thetablaba}{0} \AND \equal{\thetabcap}{1}}{%
+    \renewcommand{\tabcapalign}{\raggedright}
+}{}
+\ifthenelse{\equal{\thetablaba}{1} \AND \equal{\thetabcap}{1}}{%
+    \renewcommand{\tabcapalign}{\centering}
+}{}
+\ifthenelse{\equal{\thetablaba}{2} \AND \equal{\thetabcap}{1}}{%
+    \renewcommand{\tabcapalign}{\raggedleft}
+}{}
+\ifthenelse{\equal{\thetabtita}{0} \AND \equal{\thetabcap}{1}}{%
+    \newcommand{\tabtitalign}{\raggedright}
+}{}
+\ifthenelse{\equal{\thetabtita}{1} \AND \equal{\thetabcap}{1}}{%
+    \renewcommand{\tabtitalign}{\centering}
+}{}
+\ifthenelse{\equal{\thetabtita}{2} \AND \equal{\thetabcap}{1}}{%
+    \renewcommand{\tabtitalign}{\raggedleft}
+}{}
+
+\DeclareCaptionFormat{tablenocaption}{\tabcapalign #1\strut}
+\ifthenelse{\equal{\thetabcap}{0}}{%
+    \DeclareCaptionFormat{tablecaption}{\tabcapalign #1#2#3}
+    \captionsetup[table]{labelsep=emdash}
+}{%
+    \DeclareCaptionFormat{tablecaption}{\tabcapalign #1#2\par\tabtitalign{#3}}
+    \captionsetup[table]{labelsep=space}
+}
+\captionsetup[table]{format=tablecaption,singlelinecheck=off,font=onehalfspacing,position=top,skip=-5pt}
+\DeclareCaptionLabelFormat{continued}{Продолжение таблицы~#2}
+\setlength{\belowcaptionskip}{.2cm}
+\setlength{\intextsep}{0ex}
+
+\definecolor{linkcolor}{rgb}{0.0,0,0}
+\definecolor{citecolor}{rgb}{0,0.0,0}
+\definecolor{urlcolor}{rgb}{0,0,0}
+\hypersetup{
+    linktocpage=true,
+    plainpages=true,
+    colorlinks,
+    linkcolor={linkcolor},
+    citecolor={citecolor},
+    urlcolor={urlcolor},
+    pdflang={ru},
+}
+\urlstyle{same}
+\setlength{\parindent}{2.5em}
+\renewcommand{\labelitemi}{\bfseries~{---}}
+\setlist{nosep,labelindent=\parindent,leftmargin=*}
+
+\usepackage{ragged2e}
+\usepackage[explicit]{titlesec}
+\usepackage{xparse}
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{background,main,foreground}
+\makeatletter
+\NewDocumentCommand {\getnodedimen} {O{\nodewidth} O{\nodeheight} m} {
+  \begin{pgfinterruptboundingbox}
+  \begin{scope}[local bounding box=bb@temp]
+    \node[inner sep=0pt, fit=(#3)] {};
+  \end{scope}
+  \path ($(bb@temp.north east)-(bb@temp.south west)$);
+  \end{pgfinterruptboundingbox}
+  \pgfgetlastxy{#1}{#2}
+}
+\makeatother
+\definecolor{Back_red}{rgb}{1,.45,.34}
+\definecolor{Back_blue}{rgb}{0.6,.55,1}
+\definecolor{Back_green}{rgb}{0.25,0.9,0.2}
+\usepackage{url}
+\usepackage{algorithm, algorithmicx}
+\usepackage[noend]{algpseudocode}
+\usepackage{tabularx}
+\usepackage[
+    backend=biber,
+    bibstyle=gost-numeric,
+    sorting=none
+]{biblatex}
+\addbibresource{biblio.bib}
+\titleformat{name=\section,numberless}[block]{\normalfont\Large\centering}{}{0em}{#1}
+\titleformat{\section}[block]{\normalfont\Large\bfseries\raggedright}{}{0em}{\thesection\hspace{0.25em}#1}
+\titleformat{\subsection}[block]{\normalfont\Large\bfseries\raggedright}{}{0em}{\thesubsection\hspace{0.25em}#1}
+\titleformat{\subsubsection}[block]{\normalfont\large\bfseries\raggedright}{}{0em}{\thesubsubsection\hspace{0.25em}#1}
+\let\Algorithm\algorithm
+\renewcommand\algorithm[1][]{\Algorithm[#1]\setstretch{1.5}}
+\usepackage{pifont}
+\usepackage{calc}
+\makeatletter
+\def\p@subsection{}
+\def\p@subsubsection{\thesection\,\thesubsection\,}
+\makeatother
