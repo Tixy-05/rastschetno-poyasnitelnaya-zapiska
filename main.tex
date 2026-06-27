@@ -217,7 +217,7 @@
 
 \begin{Definition}[Строковый морфизм]
   Строковый морфизм $\phi\!: \Sigma^* \to \Gamma^*$ --- это функция, которая каждому слову $w \in \Sigma^*$ 
-  ставит в соответствие слово $\phi(w) \in \Gamma^*$, сохраняющую конкатенацию, т.е. $\forall w_1, w_2 \in \Sigma^* \ \phi(w_1 w_2) = \phi(w_1) \phi(w_2)$. Строковый морфизм однозначно задается набором значений на символах алфавита $\Sigma$. Если для некоторого $\sigma \in \Sigma$ не задано явным образом отображение, будем считать, что $\sigma$ отображается в себя. В таком случае будем опускать этот факт в записи областей определения и значений морфизма.
+  ставит в соответствие слово $\phi(w) \in \Gamma^*$, сохраняющаяконкатенацию, т.е. $\forall w_1, w_2 \in \Sigma^* \ \phi(w_1 w_2) = \phi(w_1) \phi(w_2)$. Строковый морфизм однозначно задается набором значений на символах алфавита $\Sigma$. Если для некоторого $\sigma \in \Sigma$ не задано явным образом отображение, будем считать, что $\sigma$ отображается в себя. В таком случае будем опускать этот факт в записи областей определения и значений морфизма.
 \end{Definition}
 
 Все морфизмы в данной работе --- строковые, поэтому будем опускать слово "строковый".
@@ -512,8 +512,7 @@ $$
 множество $\subpat_{k-1}$, его элементы включают себя $k$-шаблоны в качестве подшаблонов. Для принятия решения о переходе по этим $k$-шаблонам автомат $B$ использует состояния автомата $A$, аннотации финальных состояний $A$ позволяют автомату $B$ получать необходимую информацию о том, какие шаблоны прочитаны $A$.
 
 Итак, конструкция выше задает пару автоматов, каскадное произведение которых $A \circ B$ распознает $k-1$-шаблоны. 
-Повторяя процедуру выше для $k, k-1, \dots, 0$ -шаблонов, получаем каскад $A_{k} \circ A_{k-1} \circ \dots \circ A_{0}$ с тривиальными аннтоациями, 
-распознающий искомый шаблон. 
+Повторяя процедуру выше для $k, k-1, \dots, 1$ -шаблонов, получаем каскад $A_{k} \circ A_{k-1} \circ \dots \circ A_{0}$ с аннтоациями $1-шаблонов$.
 
 При решении задачи экранирования и задачи порождения документации необходимо различать множество $\bigcup_i \subpat_k(p_i)$ всех $k$-подшаблонов всех шаблонов 
 некоторой функции $f.$
@@ -522,7 +521,7 @@ $$
 
 Рассмотрим пример функции, приведённой \inlisting{lst:f}.
 \begin{listing}[H]
-\caption{Пример функции на базисном Рефале}
+\caption{Пример последовательности образцов с вложенными скобочными уровнями}
 \label{lst:f}
 \begin{minted}{refal}
 f {
@@ -552,7 +551,17 @@ f {
 \end{tabular}
 \end{table}
 
-\Onfigures{fig:annotated-recognizer-level2}{fig:cascade-lift-example}{fig:cascade-simplification-example} представлены элементы каскада автоматов. Состояния лифта выделены красным, состояния аннотированного ДКА-объединения имеют пунктирую границу. Злоупотребляя нотацией, будем полагать, что во всех состояниях младших аннотированных ДКА для $k$-шаблонов, у которых нет явного перехода по открывающей скобке, находится лифт на $d-k$ уровней, где $d$ --- глубина наиболее вложенного подшаблона в функции. Такая конструкция необходима, чтобы младший автомат выходил из ожидания по корректной закрывающей скобке.
+\Onfigures{fig:annotated-recognizer-level2}{fig:cascade-lift-example}{fig:cascade-simplification-example} 
+представлены элементы каскада автоматов. Состояния 
+лифта выделены красным, состояния аннотированного ДКА-объединения имеют пунктирую границу. 
+Злоупотребляя нотацией, будем полагать, что во всех состояниях младших аннотированных ДКА 
+для $k$-шаблонов, у которых нет явного перехода по открывающей скобке, находится лифт на 
+$d-k$ уровней, где $d$ --- глубина наиболее вложенного подшаблона в функции. Такая 
+конструкция необходима, чтобы младший автомат выходил из ожидания по корректной 
+закрывающей скобке. Кроме того, из всех видимых состояний, из которых нет перехода по 
+закрывающей скобке, неявно присутствует переход в состояние-предпоследний \enq{этаж} лифта.
+Аннотированные состояния помечены финальными с целью подчеркнуть значимость сигналов, порождаемых этими состояниями, для следующего автомата в каскаде --- для младшего автомата наибольший интерес преставляют именно аннотированные состояния.
+Большинство автоматов имеют полную функцию переходов, но там, где она неполна, предполагаем существование ловушки --- все отсутствующие переходы ведут в нее, выйти из ловушки можно только по закрывающей скобке в состояние лифта.
 
 \begin{figure}[htbp]
   \centering
@@ -613,6 +622,7 @@ f {
     every state/.style={thick, fill=gray!10, circular drop shadow,
       minimum size=7.5mm, inner sep=0pt, font=\scriptsize},
     lift state/.style={fill=red!15},
+    no close state/.style={fill=gray!10},
     every loop/.style={min distance=6mm, looseness=5},
   ]
     \begin{scope}[
@@ -632,20 +642,18 @@ f {
     \coordinate (r4) at (0,4*\rowsep);
 
     \node[state]              (n04) at (c0 |- r4) {};
-    \node[state]              (n14) at (c1 |- r4) {};
-    \node[state, accepting]   (n24) at (c2 |- r4) {$1$};
+    \node[state, no close state] (n14) at (c1 |- r4) {};
+    \node[state, no close state, accepting] (n24) at (c2 |- r4) {$1$};
     \node[state, initial, lift state, solid] (n03) at (c0 |- r3) {};
-    \node[state]              (n13) at (c1 |- r3) {};
-    \node[state, accepting]   (n23) at (c2 |- r3) {$2$};
+    \node[state, no close state] (n13) at (c1 |- r3) {};
     \node[state, lift state]  (n02) at (c0 |- r2) {};
     \node[state]              (n12) at (c1 |- r2) {};
-    \node[state, accepting]   (n22) at (c2 |- r2) {$3$};
-    \node[state]              (n01) at (c0 |- r1) {};
+    \node[state, no close state, accepting] (n22) at (c2 |- r2) {$3$};
+    \node[state, no close state] (n01) at (c0 |- r1) {};
     \node[state]              (n11) at (c1 |- r1) {};
-    \node[state]              (n21) at (c2 |- r1) {};
-    \node[state, accepting]   (n00) at (c0 |- r0) {$4$};
+    \node[state, no close state] (n21) at (c2 |- r1) {};
+    \node[state, no close state, accepting] (n00) at (c0 |- r0) {$2$};
     \node[font=\scriptsize, above=3pt of n24] {$\{\mathrm{I}\}$};
-    \node[font=\scriptsize, right=3pt of n23] {$\{\mathrm{II}\}$};
     \node[font=\scriptsize, right=3pt of n22] {$\{\mathrm{I},\,\mathrm{II}\}$};
     \node[font=\scriptsize, below=3pt of n00] {$\{\mathrm{II}\}$};
 
@@ -658,15 +666,12 @@ f {
       (n04) edge[bend left=22] node[pos=0.38, right=-1pt] {\edgelabel{$\litrep;\,\overline{1}$}} (n13)
       (n13) edge[bend left=22] node[pos=0.38, left=-1pt] {\edgelabel{$\litparen$}} (n04)
       (n13) edge[loop right] node[pos=0.12, right=5pt] {\edgelabel{$s$}} ()
-      (n23) edge[loop above] node[pos=0.08, above=5pt] {\edgelabel{$s$}} ()
       (n03) edge node[midway, left=-1pt] {\edgelabel{$\litparen$}} (n02)
       (n02) edge[bend left=35] node[midway, left=-1pt] {\edgelabel{$\litrep$}} (n03)
       (n03) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$s$}} ()
       (n02) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$s$}} ()
       (n02) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (n12)
       (n12) edge node[midway, left=-1pt] {\edgelabel{$\litrep;\,\overline{1,2}$}} (n13)
-      (n23) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (n12)
-      (n22) edge node[midway, left=-1pt] {\edgelabel{$s$}} (n23)
       (n22) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (n12)
       (n21) edge node[midway, left=-1pt] {\edgelabel{$s$}} (n22)
       (n12) edge[bend left=22] node[pos=0.42, right=-1pt] {\edgelabel{$\litrep;\,2$}} (n01)
@@ -675,9 +680,13 @@ f {
       (n21) edge[bend left=15] node[pos=0.45, below=1pt] {\edgelabel{$\litparen$}} (n11)
       (n01) edge[bend left=22] node[pos=0.42, below=2pt] {\edgelabel{$\litparen$}} (n12)
       (n01) edge node[midway, left=-1pt] {\edgelabel{$s$}} (n00)
-      (n00) edge[bend right=20] node[pos=0.45, below=2pt] {\edgelabel{$\litparen$}} (n11)
+      (n00) edge[bend right=20] node[pos=0.5, below=-1pt, right=1pt] {\edgelabel{$\litparen$}} (n11)
       (n00) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$s$}} ();
-    \draw[->] (n11.west) -- node[below=8pt, pos=0.28, anchor=north] {\edgelabel{$\litrep;\,\overline{1}$}} (n01.east);
+    \draw[->] (n22.south east)
+      .. controls ($(n22.south east)+(0.55cm,-0.25cm)$)
+                  and ($(n21.east)+(2.2cm,-0.9cm)$) ..
+      node[pos=0.46, right=1pt] {\edgelabel{$s$}} (n00.east);
+    \draw[->] (n11.west) -- node[below=1pt, pos=0.34, xshift=-2pt, anchor=north] {\edgelabel{$\litrep;\,\overline{1}$}} (n01.east);
     \end{scope}
   \end{tikzpicture}
   \end{adjustbox}
@@ -717,13 +726,13 @@ f {
 
       \path[->]
         (q0) edge node[midway, left=-1pt] {\edgelabel{$\litparen$}} (q1)
-        (q1) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litrep;\,\overline{2,3,4}$}} (q2)
-        (q1) edge node[midway, left=-1pt] {\edgelabel{$\litrep;\,2,3,4$}} (q3)
+        (q1) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litrep;\,\overline{2,3}$}} (q2)
+        (q1) edge node[midway, left=-1pt] {\edgelabel{$\litrep;\,2,3$}} (q3)
         (q2) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (q4)
         (q3) edge node[midway, left=-1pt] {\edgelabel{$s$}} (qB)
         (q4) edge node[midway, right=-1pt] {\edgelabel{$\litrep;\,1$}} (qA);
-      \draw[->] (q3.east) to[bend right=14, looseness=0.75]
-        node[pos=0.48, below=1pt] {\edgelabel{$\litparen$}} (q4.west);
+      \draw[->] (q3.east) to[out=0, in=225, looseness=0.85]
+        node[pos=0.48, below=1pt] {\edgelabel{$\litparen$}} (q4.south west);
     \end{scope}
   \end{tikzpicture}
   \end{adjustbox}
@@ -786,8 +795,8 @@ f {
       \node[state, lift state, solid, initial] (q0) at (0, 2*\vdist) {};
       \node[state, lift state, solid] (q1) at (0, \vdist) {};
       \node[state, lift state] (q23) at (\colsep, 0) {};
-      \node[state, no close state] (p1) at (2*\colsep, 0.45*\vdist) {$1$};
-      \node[state, no close state] (p2) at (2*\colsep, -0.45*\vdist) {$2$};
+      \node[state, no close state, accepting] (p1) at (2*\colsep, 0.45*\vdist) {$1$};
+      \node[state, no close state, accepting] (p2) at (2*\colsep, -0.45*\vdist) {$2$};
       \node[font=\scriptsize, above=3pt of p1] {$\{1, 2\}$};
       \node[font=\scriptsize, below=3pt of p2] {$\{2\}$};
 
@@ -807,8 +816,8 @@ f {
       \def\vdist{1.35cm}
 
       \node[state, initial] (r0) at (0, 0) {};
-      \node[state] (r1) at (\colsep, 0) {$1$};
-      \node[state] (r2) at (0.5*\colsep, -\vdist) {$2$};
+      \node[state, accepting] (r1) at (\colsep, 0) {$1$};
+      \node[state, accepting] (r2) at (0.5*\colsep, -\vdist) {$2$};
       \node[font=\scriptsize, below=3pt of r1] {$\{1, 2\}$};
       \node[font=\scriptsize, below=3pt of r2] {$\{2\}$};
 
@@ -857,19 +866,17 @@ f {
 
     \node[state]              (n04) at (c0 |- r4) {};
     \node[state, no close state] (n14) at (c1 |- r4) {};
-    \node[state, no close state] (n24) at (c2 |- r4) {$1$};
+    \node[state, no close state, accepting] (n24) at (c2 |- r4) {$1$};
     \node[state, initial, lift state, solid] (n03) at (c0 |- r3) {};
     \node[state, no close state] (n13) at (c1 |- r3) {};
-    \node[state, no close state] (n23) at (c2 |- r3) {$2$};
     \node[state, lift state]  (n02) at (c0 |- r2) {};
     \node[state]              (n12) at (c1 |- r2) {};
-    \node[state, no close state] (n22) at (c2 |- r2) {$3$};
+    \node[state, no close state, accepting] (n22) at (c2 |- r2) {$3$};
     \node[state, no close state] (n01) at (c0 |- r1) {};
     \node[state]              (n11) at (c1 |- r1) {};
     \node[state, no close state] (n21) at (c2 |- r1) {};
-    \node[state, no close state] (n00) at (c0 |- r0) {$4$};
+    \node[state, no close state, accepting] (n00) at (c0 |- r0) {$2$};
     \node[font=\scriptsize, above=3pt of n24] {$\{\mathrm{I}\}$};
-    \node[font=\scriptsize, right=3pt of n23] {$\{\mathrm{II}\}$};
     \node[font=\scriptsize, right=3pt of n22] {$\{\mathrm{I},\,\mathrm{II}\}$};
     \node[font=\scriptsize, below=3pt of n00] {$\{\mathrm{II}\}$};
 
@@ -882,15 +889,12 @@ f {
       (n04) edge[bend left=22] node[pos=0.38, right=-1pt] {\edgelabel{$\litrep;\,\overline{1}$}} (n13)
       (n13) edge[bend left=22] node[pos=0.38, left=-1pt] {\edgelabel{$\litparen$}} (n04)
       (n13) edge[loop right] node[pos=0.12, right=5pt] {\edgelabel{$s$}} ()
-      (n23) edge[loop above] node[pos=0.08, above=5pt] {\edgelabel{$s$}} ()
       (n03) edge node[midway, left=-1pt] {\edgelabel{$\litparen$}} (n02)
       (n02) edge[bend left=35] node[midway, left=-1pt] {\edgelabel{$\litrep$}} (n03)
       (n03) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$s$}} ()
       (n02) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$s$}} ()
       (n02) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (n12)
       (n12) edge node[midway, left=-1pt] {\edgelabel{$\litrep;\,\overline{1,2}$}} (n13)
-      (n23) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (n12)
-      (n22) edge node[midway, left=-1pt] {\edgelabel{$s$}} (n23)
       (n22) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (n12)
       (n21) edge node[midway, left=-1pt] {\edgelabel{$s$}} (n22)
       (n12) edge[bend left=22] node[pos=0.42, right=-1pt] {\edgelabel{$\litrep;\,2$}} (n01)
@@ -899,9 +903,13 @@ f {
       (n21) edge[bend left=15] node[pos=0.45, below=1pt] {\edgelabel{$\litparen$}} (n11)
       (n01) edge[bend left=22] node[pos=0.42, below=2pt] {\edgelabel{$\litparen$}} (n12)
       (n01) edge node[midway, left=-1pt] {\edgelabel{$s$}} (n00)
-      (n00) edge[bend right=20] node[pos=0.45, below=2pt] {\edgelabel{$\litparen$}} (n11)
+      (n00) edge[bend right=20] node[pos=0.5, below=-1pt, right=1pt] {\edgelabel{$\litparen$}} (n11)
       (n00) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$s$}} ();
-    \draw[->] (n11.west) -- node[below=8pt, pos=0.28, anchor=north] {\edgelabel{$\litrep;\,\overline{1}$}} (n01.east);
+    \draw[->] (n22.south east)
+      .. controls ($(n22.south east)+(0.55cm,-0.25cm)$)
+                  and ($(n21.east)+(2.2cm,-0.9cm)$) ..
+      node[pos=0.46, right=1pt] {\edgelabel{$s$}} (n00.east);
+    \draw[->] (n11.west) -- node[below=1pt, pos=0.34, xshift=-2pt, anchor=north] {\edgelabel{$\litrep;\,\overline{1}$}} (n01.east);
     \end{scope}
 
     \begin{scope}[xshift=8.6cm]
@@ -921,14 +929,12 @@ f {
       \node[state, initial]   (s0) at (c0 |- r4) {};
       \node[state]            (s1) at (c1 |- r4) {};
       \node[state]            (s2) at (c2 |- r4) {};
-      \node[state]            (s3) at (c2 |- r3) {$1$};
+      \node[state, accepting] (s3) at (c2 |- r3) {$1$};
       \node[state]            (l)  at (-\lshift*\colsep, 3*\rowsep) {};
       \node[state]            (r)  at (\lshift*\colsep, 3*\rowsep) {};
-      \node[state]            (m1) at (c0 |- r3) {$2$};
-      \node[state]            (m2) at (c0 |- r2) {$3$};
-      \node[state]            (b)  at (c0 |- r0) {$4$};
+      \node[state, accepting] (m2) at (c0 |- r2) {$3$};
+      \node[state, accepting] (b)  at (c0 |- r0) {$2$};
       \node[font=\scriptsize, right=3pt of s3] {$\{\mathrm{I}\}$};
-      \node[font=\scriptsize, below=3pt of m1] {$\{\mathrm{II}\}$};
       \node[font=\scriptsize, left=3pt of m2] {$\{\mathrm{I},\,\mathrm{II}\}$};
       \node[font=\scriptsize, below=3pt of b] {$\{\mathrm{II}\}$};
 
@@ -945,12 +951,9 @@ f {
         (l) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$b_1$}} ()
         (l) edge node[midway, above=-1pt] {\edgelabel{$s$}} (m2)
         (r) edge[loop right] node[pos=0.12, right=5pt] {\edgelabel{$b_2$}} ()
-        (r) edge[bend left=18] node[pos=0.45, below=1pt] {\edgelabel{$s$}} (m1)
-        (m1) edge[loop above] node[pos=0.08, above=6pt] {\edgelabel{$s$}} ()
-        (m1) edge[bend left=15] node[pos=0.4, above=2pt] {\edgelabel{$b_1$}} (l)
-        (m1) edge node[pos=0.55, above=-1pt] {\edgelabel{$b_0, b_2$}} (r)
+        (r) edge node[midway, right=-1pt] {\edgelabel{$s$}} (b)
         (m2) edge[bend left=22] node[midway, left=-1pt] {\edgelabel{$b_1$}} (l.south)
-        (m2) edge[bend right=22] node[midway, below=3pt, right=1pt] {\edgelabel{$b_0, b_2$}} (r)
+        (m2) edge[bend left=22] node[midway, above=3pt, right=1pt] {\edgelabel{$b_0, b_2$}} (r)
         (m2) edge node[midway, left=-1pt] {\edgelabel{$s$}} (b)
         (b) edge[loop right] node[pos=0.12, right=5pt] {\edgelabel{$s$}} ();
       \draw[->] (b.north west) to[out=125, in=225, looseness=1.2]
@@ -960,7 +963,7 @@ f {
     \end{scope}
 
     \node[font=\scriptsize, align=left, fill=white, inner sep=3pt, rounded corners=1pt]
-      at (4.75, 1.05) {%
+      at (5.35, 1.05) {%
       $\begin{aligned}
         \{1, 2\} &\mapsto b_1 \\
         \{2\}    &\mapsto b_2 \\
@@ -999,20 +1002,20 @@ f {
       \node[state] (q2) at (\colsep, \vdist) {};
       \node[state] (q3) at (0, 0) {};
       \node[state, no close state] (q4) at (2*\colsep, \vdist) {};
-      \node[state] (qA) at (2*\colsep, 0) {};
-      \node[state] (qB) at (0, -\vdist) {};
+      \node[state, no close state, accepting] (qA) at (2*\colsep, 0) {};
+      \node[state, no close state, accepting] (qB) at (0, -\vdist) {};
       \node[font=\scriptsize, below=3pt of qA] {$\{A\}$};
       \node[font=\scriptsize, below=3pt of qB] {$\{B\}$};
 
       \path[->]
         (q0) edge node[midway, left=-1pt] {\edgelabel{$\litparen$}} (q1)
-        (q1) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litrep;\,\overline{2,3,4}$}} (q2)
-        (q1) edge node[midway, left=-1pt] {\edgelabel{$\litrep;\,2,3,4$}} (q3)
+        (q1) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litrep;\,\overline{2,3}$}} (q2)
+        (q1) edge node[midway, left=-1pt] {\edgelabel{$\litrep;\,2,3$}} (q3)
         (q2) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (q4)
         (q3) edge node[midway, left=-1pt] {\edgelabel{$s$}} (qB)
         (q4) edge node[midway, right=-1pt] {\edgelabel{$\litrep;\,1$}} (qA);
-      \draw[->] (q3.east) to[bend right=14, looseness=0.75]
-        node[pos=0.48, below=1pt] {\edgelabel{$\litparen$}} (q4.west);
+      \draw[->] (q3.east) to[out=0, in=225, looseness=0.85]
+        node[pos=0.48, below=1pt] {\edgelabel{$\litparen$}} (q4.south west);
     \end{scope}
 
     \begin{scope}[xshift=7.2cm]
@@ -1022,8 +1025,8 @@ f {
       \node[state, initial] (r0) at (0.5*\colsep, 2*\vdist) {};
       \node[state] (r1) at (0, \vdist) {};
       \node[state] (r2) at (\colsep, \vdist) {};
-      \node[state] (rA) at (0, 0) {};
-      \node[state] (rB) at (\colsep, 0) {};
+      \node[state, accepting] (rA) at (0, 0) {};
+      \node[state, accepting] (rB) at (\colsep, 0) {};
       \node[font=\scriptsize, below=3pt of rA] {$\{A\}$};
       \node[font=\scriptsize, below=3pt of rB] {$\{B\}$};
 
