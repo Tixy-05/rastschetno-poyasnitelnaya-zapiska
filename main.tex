@@ -468,15 +468,55 @@ $$
 описанным выше, для всех $k$-подшаблонов $p_i$; далее построим соответствующие ДКА $A_i$.
 
 Рассмотрим ДКА-объединение $A$ всех $A_i$ с размеченными состояниями: каждое финальное состояние $f$ автомата $A$ помечается 
-множеством $\alpha \subset \subpat_k(p)$, если все пути в автомате $A$ до состояния $f$ принадлежат языкам регулярных выражений, соответствующим $k$-подшаблонам $p_j \in \alpha$. Чтобы автомат корректно работал только с $k$-шаблонами, строится композиция автомата $A$ с автоматом-лифтом на уровень скобочной вложенности $k$. Начальным состоянием $A$ становится начальное состояние лифта, последний \enq{этаж} лифта совмещается с бывшим начальным состоянием $A$. Пример автомата-лифта для уровня 2 приведен на рисунке РИС!.
+множеством $\alpha \subset \subpat_k(p)$, если все пути в автомате $A$ до состояния $f$ принадлежат языкам регулярных выражений, соответствующим $k$-подшаблонам $p_j \in \alpha$. Чтобы автомат корректно работал только с $k$-шаблонами, строится композиция автомата $A$ с автоматом-лифтом на уровень скобочной вложенности $k$. Начальным состоянием $A$ становится начальное состояние лифта, последний \enq{этаж} лифта совмещается с бывшим начальным состоянием $A$. Пример автомата-лифта для уровня~2 приведён \onfigure{fig:lift-level2}.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{adjustbox}{width=0.75\textwidth,center}
+  \begin{tikzpicture}[
+    >=Stealth,
+    auto,
+    font=\footnotesize,
+    initial text={},
+    initial by arrow,
+    initial where=left,
+    initial distance=10mm,
+    every state/.style={thick, fill=gray!10, circular drop shadow,
+      minimum size=10mm, inner sep=0pt, font=\scriptsize},
+    lift state/.style={fill=red!15},
+    every loop/.style={min distance=8mm, looseness=5},
+  ]
+    \def\hdist{4.5cm}
+
+    \node[state, lift state, solid, initial] (q0) at (0, 0) {};
+    \node[state, lift state, solid] (q1) at (\hdist, 0) {};
+    \node[state, lift state] (q2) at (2*\hdist, 0) {};
+
+    \path[->]
+      (q0) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (q1)
+      (q0) edge[loop above] node[pos=0.12, above=5pt] {\edgelabel{$s$}} ()
+      (q1) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (q2)
+      (q1) edge[loop above] node[pos=0.12, above=5pt] {\edgelabel{$s$}} ()
+      (q1) edge[bend left=35] node[midway, above=-1pt] {\edgelabel{$\litrep$}} (q0)
+      (q2) edge[bend left=35] node[midway, above=-1pt] {\edgelabel{$\litrep$}} (q1);
+  \end{tikzpicture}
+  \end{adjustbox}
+  \caption{Автомат-лифт для уровня вложенности~$2$.}
+  \label{fig:lift-level2}
+\end{figure}
 
 Полученный автомат $A$ является управляющим автоматом каскада. Если $k > 1$, то следующий элемент 
 каскада будет управляться символом входного слова и состоянием $A$. Для построения управляемого автомата $B$ необходимо рассмотреть 
 множество $\subpat_{k-1}$, его элементы включают себя $k$-шаблоны в качестве подшаблонов. Для принятия решения о переходе по этим $k$-шаблонам автомат $B$ использует состояния автомата $A$, аннотации финальных состояний $A$ позволяют автомату $B$ получать необходимую информацию о том, какие шаблоны прочитаны $A$.
 
 Итак, конструкция выше задает пару автоматов, каскадное произведение которых $A \circ B$ распознает $k-1$-шаблоны. 
-Повторяя процедуру выше для $k, k-1, \dots, 0$ -шаблонов, получаем каскад $A_{k} \circ A_{k-1} \circ \dots \circ A_{0}$, 
+Повторяя процедуру выше для $k, k-1, \dots, 0$ -шаблонов, получаем каскад $A_{k} \circ A_{k-1} \circ \dots \circ A_{0}$ с тривиальными аннтоациями, 
 распознающий искомый шаблон. 
+
+При решении задачи экранирования и задачи порождения документации необходимо различать множество $\bigcup_i \subpat_k(p_i)$ всех $k$-подшаблонов всех шаблонов 
+некоторой функции $f.$
+Конструкция выше тривиально обобщается на несколько шаблонов: для всех $k$ вместо $\subpat_k(p)$ конкретного шаблона рассматривается объединенное множество $\bigcup_i \subpat_k(p_i)$. Теперь из ДКА $0$-шаблонов можно получить ДКА каждого 
+шаблона по отдельности, оставив финальными только те состояния, в аннотациях которых присутствует данный шаблон. 
 
 Рассмотрим пример функции, приведённой \inlisting{lst:f}.
 \begin{listing}[H]
@@ -489,9 +529,205 @@ f {
 }
 \end{minted}
 \end{listing}
-Для примера \inlisting{lst:f} шаблонами уровня вложенности~2 будут $s$, $t$; уровня~1 --- $e (s) s$, $(t) e s$; без скобочной вложенности --- $t (e (s) s)$, $((t) e s) s$.
-% \Onfigures{fig:annotated-recognizer-level2}{fig:cascade-lift-example}{fig:cascade-simplification-example} представлены элементы каскада автоматов. Состояния лифта выделены красным, состояния аннотированного ДКА-объединения имеют пунктирую границу 
-%
+Для примера \inlisting{lst:f} шаблонами уровня вложенности~2 будут \texttt{s}, \texttt{t}; уровня~1 --- \texttt{e}\,\litparen\,\texttt{s}\,\litrep\,\texttt{s}, \litparen\,\texttt{t}\,\litrep\,\texttt{e}\,\texttt{s}; без скобочной вложенности --- \texttt{t}\,\litparen\,\texttt{e}\,\litparen\,\texttt{s}\,\litrep\,\texttt{s}\,\litrep, \litparen\,\litparen\,\texttt{t}\,\litrep\,\texttt{e}\,\texttt{s}\,\litrep\,\texttt{s}.
+Обозначения шаблонов см. в таблице~\ref{tab:lst-f-patterns}.
+
+\begin{table}[htbp]
+\centering
+\caption{Шаблоны примера (листинг~\ref{lst:f}) и обозначения в аннотациях состояний ДКА}
+\label{tab:lst-f-patterns}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Шаблон & Уровень вложенности & Обозначение \\
+\midrule
+\texttt{s} & 2 & $1$ \\
+\texttt{t} & 2 & $2$ \\
+\texttt{e}\,\litparen\,\texttt{s}\,\litrep\,\texttt{s} & 1 & $\mathrm{I}$ \\
+\litparen\,\texttt{t}\,\litrep\,\texttt{e}\,\texttt{s} & 1 & $\mathrm{II}$ \\
+\texttt{t}\,\litparen\,\texttt{e}\,\litparen\,\texttt{s}\,\litrep\,\texttt{s}\,\litrep & 0 & $A$ \\
+\litparen\,\litparen\,\texttt{t}\,\litrep\,\texttt{e}\,\texttt{s}\,\litrep\,\texttt{s} & 0 & $B$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\Onfigures{fig:annotated-recognizer-level2}{fig:cascade-lift-example}{fig:cascade-simplification-example} представлены элементы каскада автоматов. Состояния лифта выделены красным, состояния аннотированного ДКА-объединения имеют пунктирую границу. Злоупотребляя нотацией, будем полагать, что во всех состояниях младших аннотированных ДКА для $k$-шаблонов, у которых нет явного перехода по открывающей скобке, находится лифт на $d-k$ уровней, где $d$ --- глубина наиболее вложенного подшаблона в функции. Такая конструкция необходима, чтобы младший автомат выходил из ожидания по корректной закрывающей скобке.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{adjustbox}{max width=0.55\textwidth,center}
+  \begin{tikzpicture}[
+    >=Stealth,
+    auto,
+    font=\footnotesize,
+    initial text={},
+    initial by arrow,
+    initial where=above,
+    initial distance=7mm,
+    every state/.style={thick, fill=gray!10, circular drop shadow,
+      minimum size=7.5mm, inner sep=0pt, font=\scriptsize},
+    lift state/.style={fill=red!15},
+    every loop/.style={min distance=6mm, looseness=5},
+  ]
+    \begin{scope}[
+      every state/.append style={dashed},
+    ]
+      \def\colsep{2.2cm}
+      \def\vdist{1.35cm}
+
+      \node[state, lift state, solid, initial] (q0) at (0, 2*\vdist) {};
+      \node[state, lift state, solid] (q1) at (0, \vdist) {};
+      \node[state, lift state] (q23) at (\colsep, 0) {};
+      \node[state, accepting] (p1) at (2*\colsep, 0.45*\vdist) {$1$};
+      \node[state, accepting] (p2) at (2*\colsep, -0.45*\vdist) {$2$};
+      \node[font=\scriptsize, above=3pt of p1] {$\{1, 2\}$};
+      \node[font=\scriptsize, below=3pt of p2] {$\{2\}$};
+
+      \path[->]
+        (q0) edge node[midway, left=-1pt] {\edgelabel{$\litparen$}} (q1)
+        (q0) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$s$}} ()
+        (q1) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (q23)
+        (q1) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$s$}} ()
+        (q1) edge[bend left=35] node[midway, left=-1pt] {\edgelabel{$\litrep$}} (q0)
+        (q23) edge[bend left=35] node[midway, left=-1pt] {\edgelabel{$\litrep$}} (q1)
+        (q23) edge node[pos=0.55, above=-1pt] {\edgelabel{$s$}} (p1)
+        (q23) edge node[pos=0.42, right=-1pt] {\edgelabel{$b$}} (p2);
+    \end{scope}
+  \end{tikzpicture}
+  \end{adjustbox}
+  \caption{Аннотированный распознаватель для шаблонов уровня вложенности~$2$.}
+  \label{fig:annotated-recognizer-level2}
+\end{figure}
+\begin{figure}[htbp]
+  \centering
+  \begin{adjustbox}{max width=0.55\textwidth,center}
+  \begin{tikzpicture}[
+    >=Stealth,
+    auto,
+    font=\footnotesize,
+    initial text={},
+    initial by arrow,
+    initial where=above,
+    initial distance=7mm,
+    every state/.style={thick, fill=gray!10, circular drop shadow,
+      minimum size=7.5mm, inner sep=0pt, font=\scriptsize},
+    lift state/.style={fill=red!15},
+    every loop/.style={min distance=6mm, looseness=5},
+  ]
+    \begin{scope}[
+      every state/.append style={dashed},
+      initial state/.style={fill=red!30, draw=red, thick, solid},
+    ]
+    \def\colsep{2.2cm}
+    \def\rowsep{2.625cm}
+
+    \coordinate (c0) at (0,0);
+    \coordinate (c1) at (\colsep,0);
+    \coordinate (c2) at (2*\colsep,0);
+    \coordinate (r0) at (0,0);
+    \coordinate (r1) at (0,\rowsep);
+    \coordinate (r2) at (0,2*\rowsep);
+    \coordinate (r3) at (0,3*\rowsep);
+    \coordinate (r4) at (0,4*\rowsep);
+
+    \node[state]              (n04) at (c0 |- r4) {};
+    \node[state]              (n14) at (c1 |- r4) {};
+    \node[state, accepting]   (n24) at (c2 |- r4) {$1$};
+    \node[state, initial, lift state, solid] (n03) at (c0 |- r3) {};
+    \node[state]              (n13) at (c1 |- r3) {};
+    \node[state, accepting]   (n23) at (c2 |- r3) {$2$};
+    \node[state, lift state]  (n02) at (c0 |- r2) {};
+    \node[state]              (n12) at (c1 |- r2) {};
+    \node[state, accepting]   (n22) at (c2 |- r2) {$3$};
+    \node[state]              (n01) at (c0 |- r1) {};
+    \node[state]              (n11) at (c1 |- r1) {};
+    \node[state]              (n21) at (c2 |- r1) {};
+    \node[state, accepting]   (n00) at (c0 |- r0) {$4$};
+    \node[font=\scriptsize, above=3pt of n24] {$\{\mathrm{I}\}$};
+    \node[font=\scriptsize, right=3pt of n23] {$\{\mathrm{II}\}$};
+    \node[font=\scriptsize, right=3pt of n22] {$\{\mathrm{I},\,\mathrm{II}\}$};
+    \node[font=\scriptsize, below=3pt of n00] {$\{\mathrm{II}\}$};
+
+    \path[->]
+      (n04) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litrep;\,1$}} (n14)
+      (n14) edge node[pos=0.55, above=-1pt] {\edgelabel{$s$}} (n24)
+      (n24) edge[bend left=30] node[pos=0.45, left=-1pt] {\edgelabel{$\litparen$}} (n13)
+      (n14) edge node[midway, right=-1pt] {\edgelabel{$\litparen$}} (n13)
+      (n24) edge[loop right] node[pos=0.12, right=5pt] {\edgelabel{$s$}} ()
+      (n04) edge[bend left=22] node[pos=0.38, right=-1pt] {\edgelabel{$\litrep;\,\overline{1}$}} (n13)
+      (n13) edge[bend left=22] node[pos=0.38, left=-1pt] {\edgelabel{$\litparen$}} (n04)
+      (n13) edge[loop right] node[pos=0.12, right=5pt] {\edgelabel{$s$}} ()
+      (n23) edge[loop above] node[pos=0.08, above=5pt] {\edgelabel{$s$}} ()
+      (n03) edge node[midway, left=-1pt] {\edgelabel{$\litparen$}} (n02)
+      (n02) edge[bend left=35] node[midway, left=-1pt] {\edgelabel{$\litrep$}} (n03)
+      (n03) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$s$}} ()
+      (n02) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$s$}} ()
+      (n02) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (n12)
+      (n12) edge node[midway, left=-1pt] {\edgelabel{$\litrep;\,\overline{1,2}$}} (n13)
+      (n23) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (n12)
+      (n22) edge node[midway, left=-1pt] {\edgelabel{$s$}} (n23)
+      (n22) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (n12)
+      (n21) edge node[midway, left=-1pt] {\edgelabel{$s$}} (n22)
+      (n12) edge[bend left=22] node[pos=0.42, right=-1pt] {\edgelabel{$\litrep;\,2$}} (n01)
+      (n12) edge node[pos=0.42, right=-1pt] {\edgelabel{$\litrep;\,1$}} (n21)
+      (n11) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litrep;\,1$}} (n21)
+      (n21) edge[bend left=15] node[pos=0.45, below=1pt] {\edgelabel{$\litparen$}} (n11)
+      (n01) edge[bend left=22] node[pos=0.42, below=2pt] {\edgelabel{$\litparen$}} (n12)
+      (n01) edge node[midway, left=-1pt] {\edgelabel{$s$}} (n00)
+      (n00) edge[bend right=20] node[pos=0.45, below=2pt] {\edgelabel{$\litparen$}} (n11)
+      (n00) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$s$}} ();
+    \draw[->] (n11.west) -- node[below=8pt, pos=0.28, anchor=north] {\edgelabel{$\litrep;\,\overline{1}$}} (n01.east);
+    \end{scope}
+  \end{tikzpicture}
+  \end{adjustbox}
+  \caption{Пример аннотированного ДКА для 1-шаблонов.}
+  \label{fig:cascade-lift-example}
+\end{figure}
+\begin{figure}[htbp]
+  \centering
+  \begin{adjustbox}{max width=0.55\textwidth,center}
+  \begin{tikzpicture}[
+    >=Stealth,
+    auto,
+    font=\footnotesize,
+    initial text={},
+    initial by arrow,
+    initial where=above,
+    initial distance=7mm,
+    every state/.style={thick, fill=gray!10, circular drop shadow,
+      minimum size=7.5mm, inner sep=0pt, font=\scriptsize},
+    every loop/.style={min distance=6mm, looseness=5},
+  ]
+    \begin{scope}[
+      every state/.append style={dashed},
+    ]
+      \def\colsep{2.2cm}
+      \def\vdist{1.35cm}
+
+      \node[state, initial] (q0) at (0, 2*\vdist) {};
+      \node[state] (q1) at (0, \vdist) {};
+      \node[state] (q2) at (\colsep, \vdist) {};
+      \node[state] (q3) at (0, 0) {};
+      \node[state] (q4) at (2*\colsep, \vdist) {};
+      \node[state, accepting] (qA) at (2*\colsep, 0) {};
+      \node[state, accepting] (qB) at (0, -\vdist) {};
+      \node[font=\scriptsize, below=3pt of qA] {$\{A\}$};
+      \node[font=\scriptsize, below=3pt of qB] {$\{B\}$};
+
+      \path[->]
+        (q0) edge node[midway, left=-1pt] {\edgelabel{$\litparen$}} (q1)
+        (q1) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litrep;\,\overline{2,3,4}$}} (q2)
+        (q1) edge node[midway, left=-1pt] {\edgelabel{$\litrep;\,2,3,4$}} (q3)
+        (q2) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (q4)
+        (q3) edge node[midway, left=-1pt] {\edgelabel{$s$}} (qB)
+        (q4) edge node[midway, right=-1pt] {\edgelabel{$\litrep;\,1$}} (qA);
+      \draw[->] (q3.east) to[bend right=14, looseness=0.75]
+        node[pos=0.48, below=1pt] {\edgelabel{$\litparen$}} (q4.west);
+    \end{scope}
+  \end{tikzpicture}
+  \end{adjustbox}
+  \caption{Последний элемент каскада уровня~0.}
+  \label{fig:cascade-simplification-example}
+\end{figure}
 
 \subsubsection{Переход от каскада к ДКА} % 2.5 стр.
 Конструкция выше является теоретическим обоснованием подхода, описанного ниже. Покажем, 
@@ -519,18 +755,307 @@ f {
 Таким образом, в данной конструкции бремя различия несовпадающих вложенных подшаблонов ложится на алфавит. 
 Конечным результатом алгоритма, следующего правилам выше, будет ДКА искомого шаблона в некотором алфавите $s, b_0, b_1, \dots, b_n.$
 
+\Onfigures{fig:simplified-pair-level2}{fig:simplified-pair-level1}{fig:simplified-pair-level0} представлен пример упрощенной конструкции ДКА справа рядом с полным каскадом слева. Рассматривается функция \texttt{f} из примера \inlisting{lst:f}, обозначения шаблонов см. в таблице~\ref{tab:lst-f-patterns}. 
+В каскаде синим цветом выделены состояния, \enq{оставшиеся} в упрощенной конструкции.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{adjustbox}{max width=\textwidth,center}
+  \begin{tikzpicture}[
+    >=Stealth,
+    auto,
+    font=\footnotesize,
+    initial text={},
+    initial by arrow,
+    initial where=above,
+    initial distance=7mm,
+    every state/.style={thick, fill=gray!10, circular drop shadow,
+      minimum size=7.5mm, inner sep=0pt, font=\scriptsize},
+    lift state/.style={fill=red!15},
+    no close state/.style={fill=blue!15},
+    every loop/.style={min distance=6mm, looseness=5},
+  ]
+    \begin{scope}[
+      every state/.append style={dashed},
+    ]
+      \def\colsep{2.2cm}
+      \def\vdist{1.35cm}
+
+      \node[state, lift state, solid, initial] (q0) at (0, 2*\vdist) {};
+      \node[state, lift state, solid] (q1) at (0, \vdist) {};
+      \node[state, lift state] (q23) at (\colsep, 0) {};
+      \node[state, no close state] (p1) at (2*\colsep, 0.45*\vdist) {$1$};
+      \node[state, no close state] (p2) at (2*\colsep, -0.45*\vdist) {$2$};
+      \node[font=\scriptsize, above=3pt of p1] {$\{1, 2\}$};
+      \node[font=\scriptsize, below=3pt of p2] {$\{2\}$};
+
+      \path[->]
+        (q0) edge node[midway, left=-1pt] {\edgelabel{$\litparen$}} (q1)
+        (q0) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$s$}} ()
+        (q1) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (q23)
+        (q1) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$s$}} ()
+        (q1) edge[bend left=35] node[midway, left=-1pt] {\edgelabel{$\litrep$}} (q0)
+        (q23) edge[bend left=35] node[midway, left=-1pt] {\edgelabel{$\litrep$}} (q1)
+        (q23) edge node[pos=0.55, above=-1pt] {\edgelabel{$s$}} (p1)
+        (q23) edge node[pos=0.42, right=-1pt] {\edgelabel{$b$}} (p2);
+    \end{scope}
+
+    \begin{scope}[xshift=7.2cm]
+      \def\colsep{2.2cm}
+      \def\vdist{1.35cm}
+
+      \node[state, initial] (r0) at (0, 0) {};
+      \node[state] (r1) at (\colsep, 0) {$1$};
+      \node[state] (r2) at (0.5*\colsep, -\vdist) {$2$};
+      \node[font=\scriptsize, below=3pt of r1] {$\{1, 2\}$};
+      \node[font=\scriptsize, below=3pt of r2] {$\{2\}$};
+
+      \path[->]
+        (r0) edge node[pos=0.55, above=-1pt] {\edgelabel{$s$}} (r1)
+        (r0) edge node[pos=0.42, right=-1pt] {\edgelabel{$b$}} (r2);
+    \end{scope}
+  \end{tikzpicture}
+  \end{adjustbox}
+  \caption{Аннотированный распознаватель для шаблонов уровня вложенности~$2$ (слева). Справа --- тот же распознаватель без лифта над алфавитом $\{b, s\}$.}
+  \label{fig:simplified-pair-level2}
+\end{figure}
+\begin{figure}[htbp]
+  \centering
+  \begin{adjustbox}{max width=\textwidth,center}
+  \begin{tikzpicture}[
+    >=Stealth,
+    auto,
+    font=\footnotesize,
+    initial text={},
+    initial by arrow,
+    initial where=above,
+    initial distance=7mm,
+    every state/.style={thick, fill=gray!10, circular drop shadow,
+      minimum size=7.5mm, inner sep=0pt, font=\scriptsize},
+    lift state/.style={fill=red!15},
+    no close state/.style={fill=blue!15},
+    every loop/.style={min distance=6mm, looseness=5},
+  ]
+    \begin{scope}[
+      xshift=-1.2cm,
+      every state/.append style={dashed},
+      initial state/.style={fill=red!30, draw=red, thick, solid},
+    ]
+    \def\colsep{2.2cm}
+    \def\rowsep{2.625cm}
+
+    \coordinate (c0) at (0,0);
+    \coordinate (c1) at (\colsep,0);
+    \coordinate (c2) at (2*\colsep,0);
+    \coordinate (r0) at (0,0);
+    \coordinate (r1) at (0,\rowsep);
+    \coordinate (r2) at (0,2*\rowsep);
+    \coordinate (r3) at (0,3*\rowsep);
+    \coordinate (r4) at (0,4*\rowsep);
+
+    \node[state]              (n04) at (c0 |- r4) {};
+    \node[state, no close state] (n14) at (c1 |- r4) {};
+    \node[state, no close state] (n24) at (c2 |- r4) {$1$};
+    \node[state, initial, lift state, solid] (n03) at (c0 |- r3) {};
+    \node[state, no close state] (n13) at (c1 |- r3) {};
+    \node[state, no close state] (n23) at (c2 |- r3) {$2$};
+    \node[state, lift state]  (n02) at (c0 |- r2) {};
+    \node[state]              (n12) at (c1 |- r2) {};
+    \node[state, no close state] (n22) at (c2 |- r2) {$3$};
+    \node[state, no close state] (n01) at (c0 |- r1) {};
+    \node[state]              (n11) at (c1 |- r1) {};
+    \node[state, no close state] (n21) at (c2 |- r1) {};
+    \node[state, no close state] (n00) at (c0 |- r0) {$4$};
+    \node[font=\scriptsize, above=3pt of n24] {$\{\mathrm{I}\}$};
+    \node[font=\scriptsize, right=3pt of n23] {$\{\mathrm{II}\}$};
+    \node[font=\scriptsize, right=3pt of n22] {$\{\mathrm{I},\,\mathrm{II}\}$};
+    \node[font=\scriptsize, below=3pt of n00] {$\{\mathrm{II}\}$};
+
+    \path[->]
+      (n04) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litrep;\,1$}} (n14)
+      (n14) edge node[pos=0.55, above=-1pt] {\edgelabel{$s$}} (n24)
+      (n24) edge[bend left=30] node[pos=0.45, left=-1pt] {\edgelabel{$\litparen$}} (n13)
+      (n14) edge node[midway, right=-1pt] {\edgelabel{$\litparen$}} (n13)
+      (n24) edge[loop right] node[pos=0.12, right=5pt] {\edgelabel{$s$}} ()
+      (n04) edge[bend left=22] node[pos=0.38, right=-1pt] {\edgelabel{$\litrep;\,\overline{1}$}} (n13)
+      (n13) edge[bend left=22] node[pos=0.38, left=-1pt] {\edgelabel{$\litparen$}} (n04)
+      (n13) edge[loop right] node[pos=0.12, right=5pt] {\edgelabel{$s$}} ()
+      (n23) edge[loop above] node[pos=0.08, above=5pt] {\edgelabel{$s$}} ()
+      (n03) edge node[midway, left=-1pt] {\edgelabel{$\litparen$}} (n02)
+      (n02) edge[bend left=35] node[midway, left=-1pt] {\edgelabel{$\litrep$}} (n03)
+      (n03) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$s$}} ()
+      (n02) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$s$}} ()
+      (n02) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (n12)
+      (n12) edge node[midway, left=-1pt] {\edgelabel{$\litrep;\,\overline{1,2}$}} (n13)
+      (n23) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (n12)
+      (n22) edge node[midway, left=-1pt] {\edgelabel{$s$}} (n23)
+      (n22) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (n12)
+      (n21) edge node[midway, left=-1pt] {\edgelabel{$s$}} (n22)
+      (n12) edge[bend left=22] node[pos=0.42, right=-1pt] {\edgelabel{$\litrep;\,2$}} (n01)
+      (n12) edge node[pos=0.42, right=-1pt] {\edgelabel{$\litrep;\,1$}} (n21)
+      (n11) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litrep;\,1$}} (n21)
+      (n21) edge[bend left=15] node[pos=0.45, below=1pt] {\edgelabel{$\litparen$}} (n11)
+      (n01) edge[bend left=22] node[pos=0.42, below=2pt] {\edgelabel{$\litparen$}} (n12)
+      (n01) edge node[midway, left=-1pt] {\edgelabel{$s$}} (n00)
+      (n00) edge[bend right=20] node[pos=0.45, below=2pt] {\edgelabel{$\litparen$}} (n11)
+      (n00) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$s$}} ();
+    \draw[->] (n11.west) -- node[below=8pt, pos=0.28, anchor=north] {\edgelabel{$\litrep;\,\overline{1}$}} (n01.east);
+    \end{scope}
+
+    \begin{scope}[xshift=8.6cm]
+      \def\colsep{2.2cm}
+      \def\rowsep{2.625cm}
+      \def\lshift{0.85}
+
+      \coordinate (c0) at (0,0);
+      \coordinate (c1) at (\colsep,0);
+      \coordinate (c2) at (2*\colsep,0);
+      \coordinate (r0) at (0,0);
+      \coordinate (r1) at (0,\rowsep);
+      \coordinate (r2) at (0,2*\rowsep);
+      \coordinate (r3) at (0,3*\rowsep);
+      \coordinate (r4) at (0,4*\rowsep);
+
+      \node[state, initial]   (s0) at (c0 |- r4) {};
+      \node[state]            (s1) at (c1 |- r4) {};
+      \node[state]            (s2) at (c2 |- r4) {};
+      \node[state]            (s3) at (c2 |- r3) {$1$};
+      \node[state]            (l)  at (-\lshift*\colsep, 3*\rowsep) {};
+      \node[state]            (r)  at (\lshift*\colsep, 3*\rowsep) {};
+      \node[state]            (m1) at (c0 |- r3) {$2$};
+      \node[state]            (m2) at (c0 |- r2) {$3$};
+      \node[state]            (b)  at (c0 |- r0) {$4$};
+      \node[font=\scriptsize, right=3pt of s3] {$\{\mathrm{I}\}$};
+      \node[font=\scriptsize, below=3pt of m1] {$\{\mathrm{II}\}$};
+      \node[font=\scriptsize, left=3pt of m2] {$\{\mathrm{I},\,\mathrm{II}\}$};
+      \node[font=\scriptsize, below=3pt of b] {$\{\mathrm{II}\}$};
+
+      \path[->]
+        (s0) edge node[pos=0.55, above=-1pt] {\edgelabel{$b_0$}} (s1)
+        (s0) edge node[midway, left=-1pt] {\edgelabel{$b_1$}} (l.north)
+        (s0) edge node[midway, right=-1pt] {\edgelabel{$b_2$}} (r)
+        (s1) edge[loop above] node[pos=0.08, above=6pt] {\edgelabel{$s, b_0, b_2$}} ()
+        (s1) edge[bend left=28] node[pos=0.55, above=2pt] {\edgelabel{$b_1$}} (s2)
+        (s2) edge[bend left=28] node[pos=0.55, below=2pt] {\edgelabel{$b_0, b_2$}} (s1)
+        (s2) edge[bend left=22] node[pos=0.35, left=10pt] {\edgelabel{$s$}} (s3)
+        (s3) edge[bend left=22] node[pos=0.65, right=10pt] {\edgelabel{$b_1$}} (s2)
+        (s3) edge[bend left=22] node[pos=0.55, below=2pt] {\edgelabel{$b_0, b_2$}} (s1)
+        (l) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$b_1$}} ()
+        (l) edge node[midway, above=-1pt] {\edgelabel{$s$}} (m2)
+        (r) edge[loop right] node[pos=0.12, right=5pt] {\edgelabel{$b_2$}} ()
+        (r) edge[bend left=18] node[pos=0.45, below=1pt] {\edgelabel{$s$}} (m1)
+        (m1) edge[loop above] node[pos=0.08, above=6pt] {\edgelabel{$s$}} ()
+        (m1) edge[bend left=15] node[pos=0.4, above=2pt] {\edgelabel{$b_1$}} (l)
+        (m1) edge node[pos=0.55, above=-1pt] {\edgelabel{$b_0, b_2$}} (r)
+        (m2) edge[bend left=22] node[midway, left=-1pt] {\edgelabel{$b_1$}} (l.south)
+        (m2) edge[bend right=22] node[midway, below=3pt, right=1pt] {\edgelabel{$b_0, b_2$}} (r)
+        (m2) edge node[midway, left=-1pt] {\edgelabel{$s$}} (b)
+        (b) edge[loop right] node[pos=0.12, right=5pt] {\edgelabel{$s$}} ();
+      \draw[->] (b.north west) to[out=125, in=225, looseness=1.2]
+        node[pos=0.38, left=2pt] {\edgelabel{$b_1$}} (l.south west);
+      \draw[->] (b.north east) to[out=55, in=315, looseness=1.2]
+        node[pos=0.38, right=2pt] {\edgelabel{$b_0, b_2$}} (r.south east);
+    \end{scope}
+
+    \node[font=\scriptsize, align=left, fill=white, inner sep=3pt, rounded corners=1pt]
+      at (4.75, 1.05) {%
+      $\begin{aligned}
+        \{1, 2\} &\mapsto b_1 \\
+        \{2\}    &\mapsto b_2 \\
+        \varnothing &\mapsto b_0 \\[0.2em]
+        \Gamma_1 &= \{b_0, b_1, b_2\}
+      \end{aligned}$};
+  \end{tikzpicture}
+  \end{adjustbox}
+  \caption{Пример аннотированного ДКА (слева) для 1-шаблонов. Справа --- упрощённый распознаватель над алфавитом $\{s\} \cup Q_2 / \sim_\alpha$.}
+  \label{fig:simplified-pair-level1}
+\end{figure}
+\begin{figure}[htbp]
+  \centering
+  \begin{adjustbox}{max width=\textwidth,center}
+  \begin{tikzpicture}[
+    >=Stealth,
+    auto,
+    font=\footnotesize,
+    initial text={},
+    initial by arrow,
+    initial where=above,
+    initial distance=7mm,
+    every state/.style={thick, fill=gray!10, circular drop shadow,
+      minimum size=7.5mm, inner sep=0pt, font=\scriptsize},
+    no close state/.style={fill=blue!15},
+    every loop/.style={min distance=6mm, looseness=5},
+  ]
+    \begin{scope}[
+      every state/.append style={dashed},
+    ]
+      \def\colsep{2.2cm}
+      \def\vdist{1.35cm}
+
+      \node[state, initial] (q0) at (0, 2*\vdist) {};
+      \node[state, no close state] (q1) at (0, \vdist) {};
+      \node[state] (q2) at (\colsep, \vdist) {};
+      \node[state] (q3) at (0, 0) {};
+      \node[state, no close state] (q4) at (2*\colsep, \vdist) {};
+      \node[state] (qA) at (2*\colsep, 0) {};
+      \node[state] (qB) at (0, -\vdist) {};
+      \node[font=\scriptsize, below=3pt of qA] {$\{A\}$};
+      \node[font=\scriptsize, below=3pt of qB] {$\{B\}$};
+
+      \path[->]
+        (q0) edge node[midway, left=-1pt] {\edgelabel{$\litparen$}} (q1)
+        (q1) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litrep;\,\overline{2,3,4}$}} (q2)
+        (q1) edge node[midway, left=-1pt] {\edgelabel{$\litrep;\,2,3,4$}} (q3)
+        (q2) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (q4)
+        (q3) edge node[midway, left=-1pt] {\edgelabel{$s$}} (qB)
+        (q4) edge node[midway, right=-1pt] {\edgelabel{$\litrep;\,1$}} (qA);
+      \draw[->] (q3.east) to[bend right=14, looseness=0.75]
+        node[pos=0.48, below=1pt] {\edgelabel{$\litparen$}} (q4.west);
+    \end{scope}
+
+    \begin{scope}[xshift=7.2cm]
+      \def\colsep{2.2cm}
+      \def\vdist{1.35cm}
+
+      \node[state, initial] (r0) at (0.5*\colsep, 2*\vdist) {};
+      \node[state] (r1) at (0, \vdist) {};
+      \node[state] (r2) at (\colsep, \vdist) {};
+      \node[state] (rA) at (0, 0) {};
+      \node[state] (rB) at (\colsep, 0) {};
+      \node[font=\scriptsize, below=3pt of rA] {$\{A\}$};
+      \node[font=\scriptsize, below=3pt of rB] {$\{B\}$};
+
+      \path[->]
+        (r0) edge node[midway, left=-1pt] {\edgelabel{$b_2, b_0$}} (r1)
+        (r0) edge node[pos=0.42, right=-1pt] {\edgelabel{$b_1, b_3$}} (r2)
+        (r1) edge node[midway, left=-1pt] {\edgelabel{$b_2$}} (rA)
+        (r2) edge[bend left=18] node[pos=0.45, above=1pt] {\edgelabel{$b_2$}} (rA)
+        (r2) edge node[midway, right=-1pt] {\edgelabel{$s$}} (rB);
+    \end{scope}
+
+    \node[font=\scriptsize, align=left, fill=white, inner sep=3pt, rounded corners=1pt]
+      at (5.75, -3.05) {%
+      $\begin{aligned}
+        \{\mathrm{I},\,\mathrm{II}\} &\mapsto b_1 \\
+        \{\mathrm{I}\}               &\mapsto b_2 \\
+        \{\mathrm{II}\}              &\mapsto b_3 \\
+        \varnothing                   &\mapsto b_0 \\[0.2em]
+        \Gamma_1 &= \{b_0, b_1, b_2, b_3\}
+      \end{aligned}$};
+  \end{tikzpicture}
+  \end{adjustbox}
+  \caption{Последний элемент каскада уровня~0 (слева). Справа --- упрощённый автомат-распознаватель над алфавитом $\{s\} \cup Q_1 / \sim_\alpha$.}
+  \label{fig:simplified-pair-level0}
+\end{figure}
+
 Заметим, что по построению общее число аннотаций на каждого уровне относительно числа $k$-шаблонов $n$ есть $O(2^n).$
 Именно этим обусловлен отказ от рассмотрения шаблонов, содержащих атомарные символы --- в шаблонах с высоким уровнем вложенности 
 различие констант может привести к очень сильному разрастанию алфавита.
 
 \subsection{Сужение шаблона как регулярный язык} % 1 стр.
 
-Модифицировав немного конструкцию ДКА из раздела выше для построения автоматов по набору шаблонов 
+Используя конструкцию ДКА из раздела выше для построения автоматов по набору шаблонов 
 в функции, и используя базовые операций над этими ДКА, можно построить сужения каждого шаблона.
-
-При решении задачи экранирования необходимо различать множество $\bigcup_i \subpat_k(p_i)$ всех $k$-подшаблонов всех шаблонов 
-некоторой функции $f.$
-Конструкция выше тривиально обобщается на несколько шаблонов: для всех $k$ вместо $\subpat_k(p)$ конкретного шаблона рассматривается объединенное множество $\bigcup_i \subpat_k(p_i)$.
 
 Упрощенная задача экранирования для функции $f$ теперь тривиально решается проверкой $\Fact(f.p_i) = \varnothing$ для всех $p_i \in \pat f$.
 
@@ -606,15 +1131,44 @@ h {
 
 Модуль \texttt{sema} единственный предоставляет публичные функции, доступные для вызова извне.
 Сами модули взаимодействуют друг с другом весьма ограниченно, сохраняя свою внутреннюю логику закрытой.
-Схема взаимодействия модулей представлена на рисунке РИС!.
+Схема взаимодействия модулей и пользователя представлена \onfigure{fig:arch-modules}.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    >=Stealth,
+    module/.style={
+      draw=black!70, thick, rounded corners=4pt, fill=gray!8,
+      minimum width=6.5cm, minimum height=1.1cm,
+      align=center, inner sep=3pt, font=\normalsize
+    },
+    arrowlabel/.style={
+      font=\small, inner sep=2pt
+    },
+  ]
+    \node[module] (lexer) {лексический анализатор};
+    \node[module, below=1.65cm of lexer] (parser) {синтаксический анализатор};
+    \node[module, below=1.65cm of parser] (sema) {семантический анализатор};
+    \node[module, below=1.65cm of sema] (cli) {приложение с интерфейсом командной строки};
+    \node[module, below=1.65cm of cli] (user) {пользователь};
+
+    \draw[->, thick] (lexer.south) -- (parser.north)
+      node[midway, arrowlabel, fill=white] {набор токенов и список ошибок};
+    \draw[->, thick] (parser.south) -- (sema.north)
+      node[midway, arrowlabel, fill=white] {синтаксическое дерево и список ошибок};
+    \draw[->, thick] (sema.south) -- (cli.north)
+      node[midway, arrowlabel, fill=white] {семантическая информация};
+    \draw[->, thick] (cli.south) -- (user.north)
+      node[midway, arrowlabel, fill=white] {человекочитаемое представление семантической информации};
+  \end{tikzpicture}
+  \caption{Схема взаимодействия модулей программного комплекса.}
+  \label{fig:arch-modules}
+\end{figure}
 
 Лексический и синтаксический анализаторы не представляют особого интереса --- \RL имеет сравнительно 
-простую лексическую структуру, а грамматика языка ССЫЛКА! доускает реализацию синтаксического анализа 
+простую лексическую структуру, а грамматика языка~\cite{refal5lambda_breference} доускает реализацию синтаксического анализа 
 рекурсивным спуском. Так как основная цель работы --- написание семантического анализатора, лексический и 
 синтаксический анализаторы реализованы довольно просто, и не имеют продвинутых способов восстановления после ошибок.
-
-% диаграммка: справа лексер -> синтаксический анализатор -> семантический анализатор,
-% слева обертка CLI - API
 
 \subsection{Архитектура подсистемы семантического анализатора}
 
@@ -625,7 +1179,129 @@ h {
 
 Первым таким подмодулем является модуль \texttt{automata}, отвечающий за работу с автоматами и за способ хранения ДКА и НКА в памяти. При разработке прототипа приложения и его тестировании было установлено, что 
 в абсолютном большинстве случаев автоматы имеют размер до десяти тысяч состояний, а размер алфавита не превышает одной тысячи.
-В связи с этим в итоге было выбрано сжатое разрежённое строковое представление для исходящих и входящих ребер. Пример такого представления приведен на рисунке РИС!. Остлеживать входящие ребра легко при построении ДКА, в дальнейшем это дает выигрыш при реализации алгоритмов минимизации и удаления бесполезных состояний.
+В связи с этим в итоге было выбрано сжатое разреженное строковое представление для исходящих и входящих ребер. Пример такого представления только для исходящих ребер приведен \onfigure{fig:dfa-csr} (для входящих ребер схема аналогична). Отслеживать входящие ребра легко при построении ДКА, в дальнейшем это дает выигрыш при реализации алгоритмов минимизации и удаления бесполезных состояний.
+
+\begin{figure}[H]
+\centering
+\small
+\begin{adjustbox}{width=\textwidth,center}
+\begin{tikzpicture}[
+  >=Stealth,
+  auto,
+  font=\footnotesize,
+  initial text={},
+  every state/.style={thick, fill=gray!10, circular drop shadow,
+    minimum size=10mm, inner sep=0pt, font=\scriptsize},
+  every loop/.style={min distance=8mm, looseness=5},
+  memcell/.style={draw, minimum width=7mm, minimum height=6mm, inner sep=0pt, font=\scriptsize},
+  idxcell/.style={font=\tiny, anchor=center},
+  brace/.style={decorate, decoration={brace, amplitude=4pt}, thick},
+  lbl/.style={font=\scriptsize},
+  arrlbl/.style={anchor=east, font=\footnotesize},
+]
+
+% ---------- Левая часть: граф ДКА (сетка 2×2) ----------
+\def\stX{2.8}
+\def\stY{2.5}
+
+\node[state, fill=blue!15]            (q0) at (0, 0)       {$q_0$};
+\node[state, fill=orange!20]          (q1) at (0, \stY)    {$q_1$};
+\node[state, fill=green!15]           (q2) at (\stX, \stY) {$q_2$};
+\node[state, accepting, fill=red!15]  (q3) at (\stX, 0)    {$q_3$};
+
+\draw[->, thick] (-0.85, -0.55) -- (q0.220);
+
+\path[->, thick]
+  (q0) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$b$}} ()
+  (q0) edge node[left=4pt] {\edgelabel{$a$}} (q1)
+  (q0) edge[bend right=22] node[right=4pt] {\edgelabel{$c$}} (q2)
+  (q1) edge[loop above] node[pos=0.12, above=5pt] {\edgelabel{$a$}} ()
+  (q1) edge[bend left=14] node[left=4pt] {\edgelabel{$b$}} (q3)
+  (q2) edge node[above=4pt] {\edgelabel{$a$}} (q1)
+  (q2) edge[loop above] node[pos=0.12, above=5pt] {\edgelabel{$c$}} ()
+  (q3) edge node[below=4pt] {\edgelabel{$b$}} (q0);
+
+% ---------- Правая часть: CSR в памяти ----------
+\begin{scope}[xshift=7.2cm, yshift=0.3cm]
+
+\def\cellStep{0.85}
+\def\cellHalf{0.35} % половина ширины memcell (7mm)
+\def\symY{2.2}
+\def\tgtY{0.9}
+\def\idxY{1.55} % середина между символами и целями
+
+\def\arrLblX{-0.35}
+
+% смещения
+\node[arrlbl] at (\arrLblX, 4.2) {смещения:};
+
+\foreach \i/\v in {0/0, 1/3, 2/5, 3/7, 4/8} {
+  \node[memcell, fill=gray!12] (off\i) at (\i*\cellStep, 4.2) {\v};
+  \node[idxcell] at (\i*\cellStep, 4.65) {\i};
+}
+
+% Цветные диапазоны над out_symbols / out_targets
+\def\braceY{2.58}
+\def\braceLblY{2.88}
+\foreach \col/\s/\e/\st in {
+  blue!60/0/3/0,
+  orange!70!black/3/5/1,
+  green!60!black/5/7/2,
+  red!70!black/7/8/3
+} {
+  \draw[\col, brace]
+    ({\s*\cellStep-\cellHalf}, \braceY) -- ({(\e-1)*\cellStep+\cellHalf}, \braceY);
+  \node[lbl] at ({0.5*(\s+\e-1)*\cellStep}, \braceLblY) {$q_{\st}$};
+}
+
+% символы
+\node[arrlbl] at (\arrLblX, \symY) {символы:};
+
+\foreach \i/\sym/\col in {
+  0/$a$/blue!15,
+  1/$b$/blue!15,
+  2/$c$/blue!15,
+  3/$a$/orange!20,
+  4/$b$/orange!20,
+  5/$a$/green!15,
+  6/$c$/green!15,
+  7/$b$/red!15
+} {
+  \node[memcell, fill=\col] (sym\i) at (\i*\cellStep, \symY) {\sym};
+}
+
+% цели
+\node[arrlbl] at (\arrLblX, \tgtY) {цели:};
+
+\foreach \i/\tgt/\col in {
+  0/$1$/blue!15,
+  1/$0$/blue!15,
+  2/$2$/blue!15,
+  3/$1$/orange!20,
+  4/$3$/orange!20,
+  5/$1$/green!15,
+  6/$2$/green!15,
+  7/$0$/red!15
+} {
+  \node[memcell, fill=\col] (tgt\i) at (\i*\cellStep, \tgtY) {\tgt};
+}
+
+\foreach \i in {0,...,7} {
+  \node[idxcell] at (\i*\cellStep, \idxY) {\i};
+}
+
+\node[lbl, anchor=north west] at (\arrLblX, 0.35)
+  {диапазон $q_s$: [смещения[$s$], смещения[$s+1$])};
+\node[lbl, anchor=north west] at (\arrLblX, -0.05)
+  {переход $(s,a)$: бинарный поиск $a$ в символы[\ldots]};
+
+\end{scope}
+
+\end{tikzpicture}
+\end{adjustbox}
+\caption{Представления ДКА в памяти}
+\label{fig:dfa-csr}
+\end{figure}
 В числе операций на ДКА, реализованных в модуле, присутствуют:
 \begin{itemize}
 \item объединение;
