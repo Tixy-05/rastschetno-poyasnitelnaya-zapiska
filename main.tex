@@ -1951,17 +1951,81 @@ h {
 \end{listing}
 
 Положим, эта функция находится в файле \texttt{example.ref}.
-Тогда запуск \texttt{diploma --basic-screening example.ref} может выдать:
+Тогда запуск \texttt{diploma --basic-screening example.ref} даст следующий результат:
 \begin{verbatim}
-Функция h — ПРЕДУПРЕЖДЕНИЕ:
-предложение №4 перекрыто
+Function h — WARNING:
+sentence #4 is screened
 \end{verbatim}
 
 При успешном выполнении программа возвращает код~0; при ошибке чтения файла, синтаксического разбора или некорректных аргументов --- код~1.
 
 \section{Аналитическая часть}
 
-\subsection{Анализ размеров ДКА и алфавита}
+Анализ проводился на том же корпусе программ, что указан в конструкторской части. 
+Одна и та же статистика собиралась с разного подмножества функций. В первый раз в статистике 
+учитывались все функции корпуса полностью. В другой раз был учтены только \enq{хорошие} 
+функции, у которых половина и более шаблонов вносят вклад в сужение шаблонов ниже.
+
+Размер ДКА и алфавитов --- это ключевые параметры, влияющие на производительность алгоритмов.
+Начнем с анализа ДКА. Среди них наибольший интерес представляют ДКА сужений, так как именно с 
+ними выполняется наибольшее число различных. Стоит отметить, что размер самих ДКА 0-шаблонов 
+не так интересен, т.к. число состояний в минимальном ДКА шаблона всегда не больше его длины. 
+Гистограммы числа состояний сужений для всех функций корпуса и для \enq{хороших} функций 
+представлены на рисунках \ref{fig:hist-residual-states-all} и~\ref{fig:hist-residual-states-good} соответственно.
+
+\begin{figure}[H]
+\centering
+\subfloat[все функции корпуса\label{fig:hist-residual-states-all}]{%
+  \includegraphics[width=0.48\textwidth]{../stats/corpus/all/hist_residual_states.png}%
+}
+\hfill
+\subfloat[\enq{хорошие} функции\label{fig:hist-residual-states-good}]{%
+  \includegraphics[width=0.48\textwidth]{../stats/corpus/good/hist_residual_states.png}%
+}
+\caption{Гистограмма числа состояний остаточного ДКА.}
+\label{fig:hist-residual-states}
+\end{figure}
+
+Для удобства визуального восприятия используется логарифмическая шкала по вертикальной оси: 
+абсолютное большинство (более 99\%) ДКА сужений имеют не более 20 состояний. Схожая форма 
+гистограммы наблюдается для обеих множеств функций, причем наибольшая разница между 
+гистограммами наблюдается слева. Это обусловлено тем, что большие ДКА фактического языка 
+порождают преимущественно функции, 
+большая часть шаблонов в которых вносит вклад в сужение языка, а для функций, в которых, 
+например, много условий, размеры ДКА сужений совпадают меньше. 
+
+На правом конце гистограммы для всех функций виден исключительный случай --- один ДКА 
+с размером 70-74 состояния. Этот выброс относится к функции \texttt{ResetFuncName} из проекта SCP4, в частности, к ее первому предложению, вид которого приведен \inlisting{lst:reset-func-name}.
+
+\begin{listing}[H]
+\caption{Часть функции \texttt{ResetFuncName} из проекта SCP4}
+\label{lst:reset-func-name}
+\begin{minted}{refal}
+  ResetFuncName {
+    s.newName s.old s.new '/*** This comments is needed for Graph- to C- code of transforme ***/' = ...;
+    s.newName s.old s.new 0 = ...;
+    s.newName s.old s.new e.1 0 = ...;
+    s.newName s.old s.new e.1 = ...;
+  }
+\end{minted}
+\end{listing}
+
+Из-за последовательности констант в конце шаблона первого предложения, сужение автомата шаблона, совпадающее в данном случае с самим ДКА шаблона, имеет по состоянию на каждый символ последовательности в кавычках, что и приводит к такому размеру ДКА.
+
+Гистограммы числа состояний ДКА шаблонов уровня~0 приведены \refImage{fig:hist-level0-states-all} и~\refImage{fig:hist-level0-states-good}.
+
+\begin{figure}[H]
+\centering
+\subfloat[все функции корпуса\label{fig:hist-level0-states-all}]{%
+  \includegraphics[width=0.48\textwidth]{../stats/corpus/all/hist_level0_states.png}%
+}
+\hfill
+\subfloat[\enq{хорошие} функции\label{fig:hist-level0-states-good}]{%
+  \includegraphics[width=0.48\textwidth]{../stats/corpus/good/hist_level0_states.png}%
+}
+\caption{Гистограмма числа состояний ДКА шаблона уровня~0.}
+\label{fig:hist-level0-states}
+\end{figure}
 
 \subsection{Тест производительности}
 

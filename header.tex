@@ -6,6 +6,8 @@
 %\usepackage{lmodern}
 %\usepackage{minted}
 \usepackage{float}
+\floatstyle{boxed}
+\restylefloat{figure}
 \usepackage{xcolor}
 
 \definecolor{listingrule}{HTML}{B0B0B0}
@@ -22,8 +24,8 @@
   fontsize=\small,                 % \footnotesize if your column is narrow
   linenos=true,
   numbersep=8pt,                   % gap between numbers and code
-  frame=lines,                     % top + bottom rules only
-  framesep=2mm,                    % padding inside the frame
+  frame=single,
+  framesep=10pt,
   rulecolor=\color{listingrule},
   breaklines=true,
   breakanywhere=false,             % only break at sensible points
