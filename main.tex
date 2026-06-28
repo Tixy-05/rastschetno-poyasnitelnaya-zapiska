@@ -246,7 +246,7 @@ $$
   \forall w \in W \ \exists v, u \in \Sigma^* \ (w = vfu).
   $$
 \end{Definition}
-% \begin{Definition}[синтаксическая конгруэнция]
+% \begin{Definition}[Синтаксическая конгруэнция]
 % Синтаксической конгруэнцией языка $L$ будем называть отношение эквивалентности $\sim_L$ такое, что
 % $$
 % u \sim_L v \iff \forall x, y \in \Sigma^* \ (xuy \in L \iff xvy \in L)
@@ -260,7 +260,7 @@ $$
 % синтаксический моноид языка $L$.
 % \end{Definition}
 
-% \begin{Definition}[синтаксическая полугруппа]
+% \begin{Definition}[Синтаксическая полугруппа]
 %   Фактор-множество $\Sigma^+ /\! \sim_L$ с операцией конкатенации ($[x][y] = [xy]$) --- 
 %   синтаксическая полугруппа языка $L$.
 % \end{Definition}
@@ -1455,9 +1455,66 @@ $(\gamma_1 \mid \gamma_2 \mid \cdots \mid \gamma_m)$ автомат будет �
 ограничивается число веток, а на длину ограничение небольшое. Чем ниже уровень вложенности символа $b_i$, тем сильнее 
 ограничивается длина веток, на число веток накладывается все меньшее ограничение.
 
-Алгоритм извлечения обязательных инфиксов работает с ДКА как с графом, при этом кратные ребра схлопываются в одно.
+Алгоритм построения дерева обязательных префиксов представлен \inlisting{alg:doc-prefix-tree}.
 
-Два алгоритма извлечения документации к шаблонам функции представлены в листингах ЛИСТИНГ! и ЛИСТИНГ!.
+\begin{algorithm}[H]
+\caption{Построение дерева обязательных префиксов для документации}
+\label{alg:doc-prefix-tree}
+\begin{algorithmic}[1]
+\Require Данные уровней вложенности $L$, максимальная глубина $d_{\max}$, ДКА сужения $F$, политика ограничений $\pi$
+\Ensure Дерево обязательных префиксов $T$
+\State $\Lambda \gets \pi.\mathit{limits}(0, d_{\max})$
+\State $T \gets \textsc{ОбходВШирину}(F, \Lambda)$ \Comment{очередь состояний ДКА; остановка при цикле на пути, петле Клини, превышении глубины ветки или суммарного fanout}
+\Foreach{переход $(q, \sigma, q')$ на шаге обхода}
+    \State сгруппировать символы с общей целью $q'$ в сегмент $\sigma \in \{t, s, (e), b_1, \ldots\}$
+\EndForeach
+\State \textsc{ПостобработкаКорня}($T$) \Comment{добавить листья \texttt{te}, \texttt{e}, \texttt{$\varepsilon$} по флагам принятия и продолжения}
+\If{$L = \varnothing$}
+    \State \Return \textsc{УсечьДерево}($T$)
+\EndIf
+\State $\mathcal{C} \gets \varnothing$ \Comment{кэш деревьев символов $b_i$}
+\Foreach{$b \in \textsc{СимволыСкобок}(T)$}
+    \State $T_b \gets \textsc{ДеревоСимвола}(L, b, 1, d_{\max}, \pi, \mathcal{C})$
+    \State \textsc{Склеить}($T$, $b$, $T_b$) \Comment{заменить ребро $[b]$ вложенным деревом с границами \texttt{(} \ldots \texttt{)}}
+\EndForeach
+\State повторять \textsc{СклеитьОставшиесяСкобки}($T$, $\mathcal{C}$), пока в $T$ есть символы $b_i$
+\State \Return \textsc{УсечьДерево}($T$)
+\end{algorithmic}
+\end{algorithm}
+
+Процедура \textsc{ДеревоСимвола} для символа~$b$ на уровне~$d$ строит ДКА языка, аннотированного символом~$b$, выполняет для него \textsc{ОбходВШирину} с лимитами $\pi.\mathit{limits}(d, d_{\max})$, рекурсивно склеивает вложенные символы~$b_j$ и сохраняет результат в кэше~$\mathcal{C}$.
+
+Алгоритм извлечения обязательных инфиксов работает с ДКА как с графом, при этом кратные ребра схлопываются в одно. Псевдокод приведён \inlisting{alg:mandatory-infixes}.
+
+\begin{algorithm}[H]
+\caption{Извлечение обязательных инфиксов}
+\label{alg:mandatory-infixes}
+\begin{algorithmic}[1]
+\Require Данные уровней $L$, ДКА шаблона $A$, ДКА сужения $F$, ограничения $\Lambda$
+\Ensure Минимальное по включению множество строк обязательных инфиксов $M$
+\State $M \gets \varnothing$
+\Foreach{$D \in \{A, F\}$}
+    \If{$D$ слишком велик по $\Lambda$}
+        \State \textbf{continue}
+    \EndIf
+    \State $G \gets$ граф $D$ с объединёнными параллельными рёбрами
+    \State $\mathcal{B} \gets \textsc{МостыТарьяна}(G)$
+    \State $S \gets \varnothing$
+    \Foreach{мост $(u, v) \in \mathcal{B}$}
+        \Foreach{направление $(u', v') \in \{(u, v), (v, u)\}$ и символ $\sigma$ на ребре $(u', v')$}
+            \If{\textsc{ОбязательныйМост}($D$, $u'$, $v'$, $\sigma$)}
+                \State $S \gets S \cup \{(u', v', \sigma)\}$
+            \EndIf
+        \EndForeach
+    \EndForeach
+    \State $\mathcal{C} \gets \textsc{СклеитьЦепочки}(S)$ \Comment{объединить последовательные шаги через состояние степени~$2$}
+    \Foreach{цепочка $c \in \mathcal{C}$}
+        \State $M \gets M \cup \{\textsc{ФорматИнфикса}(L, D, c)\}$ \Comment{токены \texttt{s}, \texttt{(e)}, \texttt{(}\ldots\texttt{\ e)} по LCP языка символа}
+    \EndForeach
+\EndForeach
+\State \Return \textsc{МинимальныеИнфиксы}($M$) \Comment{удалить инфиксы, являющиеся подстроками других}
+\end{algorithmic}
+\end{algorithm}
 
 \subsection{Пользовательский интерфейс} % 2 стр.
 Пользовательский интерфейс обязан предоставлять пользователю возможность воспользоваться основными функциями 
@@ -1476,20 +1533,426 @@ $(\gamma_1 \mid \gamma_2 \mid \cdots \mid \gamma_m)$ автомат будет �
 
 \section{Технологическая часть}
 
-\subsection{Обзор используемых технологий} % 2 стр.
+\subsection{Обзор используемых технологий}
 
-\subsection{Реализация модуля для работы с абстрактными шаблонами} % 2 стр.
+Программный комплекс реализован на языке Rust.
+Выбор обусловлен, с одной стороны, строгой системой типов и контролем над памятью, что важно при интенсивных операциях над автоматами, а с другой --- выразительностью алгебраических типов данных (\texttt{enum}, \texttt{struct}), удобных для представления синтаксического дерева и абстрактных шаблонов.
 
-\subsection{Реализация модуля для работы с автоматами} % 2 стр.
+Архитектура проекта следует схеме, описанной в конструкторской части \refImage{fig:arch-modules}: библиотека \texttt{diploma} содержит всю логику анализа, а бинарный модуль предоставляет интерфейс командной строки.
+Структура crate приведена \inlisting{lst:crate-root}.
 
-\subsection{Реализация алгоритма обнаружения перекрытий} % 2 стр.
+\begin{listing}[H]
+\caption{Корневой модуль библиотеки \texttt{diploma}}
+\label{lst:crate-root}
+\begin{minted}{rust}
+pub mod lexer;
+pub mod parser;
+pub mod sema;
 
-\subsection{Реализация алгоритма извлечения документации} % 3 стр.
+pub mod types;
+pub mod issue_storage;
+pub mod utils;
+\end{minted}
+\end{listing}
 
-\subsection{Руководство пользователя} % 2 стр.
-% что и как установить
-% git
-% что как запускат
+Обработка исходного кода проходит три последовательных этапа: лексический анализ (\texttt{lexer}), синтаксический анализ (\texttt{parser}) и семантический анализ (\texttt{sema}).
+Первые два модуля преобразуют текст программы на \RL\ в синтаксическое дерево; модуль \texttt{sema} содержит реализацию алгоритмов работы с абстрактными шаблонами, автоматами, распознавания перекрытий и извлечения документации.
+
+Помимо основных модулей, библиотека включает вспомогательные компоненты.
+Модуль \texttt{types} определяет типы, необходимые для выдачи диагностических сообщений, (\texttt{Position}, \texttt{Diagnostic}, \texttt{Severity}), используемые лексером и парсером.
+Модуль \texttt{issue\_storage} реализует обобщённое хранилище ошибок с трейтом \texttt{Issue}.
+
+Внешние зависимости проекта сведены к минимуму (таблица~\ref{tab:deps}).
+
+\begin{table}[htbp]
+\centering
+\caption{Внешние зависимости программного комплекса}
+\label{tab:deps}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Crate & Назначение \\
+\midrule
+\texttt{regex} & распознавание лексем в построчном лексере \\
+\texttt{smol\_str} & компактное хранение имён переменных и строковых литералов \\
+\texttt{fixedbitset} & битовые множества финальных состояний ДКА и НКА \\
+\texttt{digits\_iterator} & форматирование индексов символов \texttt{b\textsubscript{i}} в выводе \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Корректность реализации проверяется модульными тестами, расположенными непосредственно в исходных файлах, тесты помечены (\texttt{\#[cfg(test)]}).
+Дополнительно используется корпус тестовых программ \texttt{refal\_test/}, включающий синтетические примеры и нескольких сравнительно больших проектов на Рефал-5 и \RL : MSCP-A, SCP4, refal5-lambda.
+
+\subsection{Реализация модуля для работы с абстрактными шаблонами}
+
+Модуль \texttt{sema::abstract\_pattern} реализует преобразование узлов синтаксического дерева в абстрактные шаблоны и построение по ним ДКА.
+Ключевые типы определены в файле \texttt{abstract\_pattern.rs}; преобразование шаблона в автомат --- в \texttt{to\_dfa.rs}.
+
+Центральной структурой является \texttt{AbstractPattern} --- последовательность элементов \texttt{AbstractPatternElement}, соответствующих абстрактному шаблону из языка $\patLang$.
+Перечисление элементов приведено \inlisting{lst:abstract-element}.
+
+\begin{listing}[H]
+\caption{Элементы абстрактного шаблона}
+\label{lst:abstract-element}
+\begin{minted}{rust}
+pub enum AbstractPatternElement {
+    TVar,
+    SVar,
+    EVar,
+    Nested(AbstractPattern),
+    Constant(Constant),
+    AlternationRegex(Vec<u16>),
+}
+\end{minted}
+\end{listing}
+
+Варианты \texttt{TVar}, \texttt{SVar} и \texttt{EVar} соответствуют переменным \texttt{t}, \texttt{s} и \texttt{e}; \texttt{Nested} --- вложенному подшаблону в скобках; \texttt{Constant} --- атомарному символу (символу, числу или строковой константе); \texttt{AlternationRegex} --- появляется в промежуточных шагах преобразования шаблонов в ДКА и представляет собой некоторую альтернативу по части символов $b_1, b_2, \ldots$.
+Причина появления констант в определении абстрактного шаблона будет рассмотрена позже.
+
+При абстрактизации каждого предложения функции формируется структура \texttt{PatternInfo}, фиксирующая свойства исходного шаблона: наличие повторных переменных (\texttt{had\_repeated\_variables}), атомарных символов (\texttt{had\_constants}), условий (\texttt{had\_condition}).
+Эта информация используется при построении фактических языков и определяет, участвует ли шаблон в сужении шаблонов ниже.
+
+Точка входа --- функция \texttt{abstractize\_from\_fn}, обходящая тело функции и для каждого предложения вызывающая \texttt{abstractize\_left\_part}.
+Последняя преобразует левую часть предложения (\texttt{LeftPart}) в пару \texttt{(AbstractPattern, PatternInfo)}.
+Внутри \texttt{abstractize\_pattern} каждый терм шаблона (\texttt{PatternTerm}) отображается в элемент абстрактного шаблона; для переменных \texttt{e} выполняется слияние смежных вхождений (\texttt{collapse\_adjacent\_evars}), отражающее семантику конкатенации \texttt{e}-переменных в Рефале.
+
+Алгоритм построения ДКА абстрактного шаблона \refAlgo{alg:abstract-pattern-dfa} реализован функцией \texttt{remove\_nesting\_with\_levels} в модуле \texttt{screening}.
+Функция используется также при извлечении документации.
+% Схема преобразований показана \onfigure{fig:abstract-pipeline}.
+
+% \begin{figure}[H]
+% \centering
+% \fbox{\parbox{0.88\textwidth}{\centering\vspace{1.8cm}\textit{[Рисунок: цепочка преобразований узла AST $\to$ \texttt{AbstractPattern} $\to$ де-вложение $\to$ ДКА]}\vspace{1.8cm}}}
+% \caption{Pipeline преобразования шаблона предложения в ДКА}
+% \label{fig:abstract-pipeline}
+% \end{figure}
+
+Функция \texttt{remove\_nesting\_with\_levels} обходит уровни вложенности от максимального к единице (\inlisting{lst:remove-nesting}).
+На каждом уровне собираются уникальные подшаблоны глубины~$d$, для каждого строится ДКА, затем выполняется аннотированное объединение (\texttt{Dfa::annotated\_union\_many}).
+Полученные аннотации нумеруются и становятся символами нового алфавита; вложенные подшаблоны заменяются элементами \texttt{AlternationRegex}.
+Данные каждого уровня сохраняются в структуре \texttt{LevelData} для последующей склейки деревьев префиксов при генерации документации.
+
+\begin{listing}[H]
+\caption{Цикл понижения максимальной глубины вложенности абстрактных шаблонов}
+\label{lst:remove-nesting}
+\begin{minted}{rust}
+for depth in (1..=max_depth).rev() {
+    let subpatterns = unique_ordered_subpatterns(&current, depth);
+    let pattern_dfas: Vec<Dfa> = subpatterns
+        .iter()
+        .map(|p| p.to_dfa(alphabet_size))
+        .collect();
+    let (_, annotation) = Dfa::annotated_union_many(&pattern_dfa_refs);
+    let vec_of_annotations = number_annotations(&annotation);
+    // замена Nested на AlternationRegex ...
+    alphabet_size = vec_of_annotations.len() as u16;
+}
+\end{minted}
+\end{listing}
+
+После понижения уровня вложенности (или для шаблонов без скобок) ДКА строится методом \texttt{AbstractPattern::to\_dfa}.
+Каждый элемент переводится во фрагмент ДКА, фрагменты конкатенируются через \texttt{Dfa::concat\_many}.
+Семантика фрагментов соответствует определению из конструкторской части: \texttt{TVar} --- переход по любому символу алфавита, \texttt{SVar} --- по символу~$s$, \texttt{EVar} --- итерация Клини над всем алфавитом, \texttt{AlternationRegex} --- объединение переходов по указанным символам.
+
+\subsection{Реализация модуля для работы с автоматами}
+
+Подмодуль \texttt{sema::automata} содержит реализации ДКА и НКА, а также набор операций над ними.
+Представление ДКА в памяти --- сжатое разреженное строковое (CSR), описанное в конструкторской части \refImage{fig:dfa-csr}.
+
+Структура \texttt{Dfa} хранит начальное состояние, битовое множество финальных состояний, размер алфавита и четыре CSR-массива для исходящих и входящих рёбер (\inlisting{lst:dfa-struct}).
+Отсутствующий переход интерпретируется как переход в неявное ловушечное состояние: метод \texttt{transition} возвращает \texttt{None}, что эквивалентно попаданию в непринимающее мёртвое состояние.
+
+\begin{listing}[H]
+\caption{Структура ДКА и метод перехода}
+\label{lst:dfa-struct}
+\begin{minted}{rust}
+pub struct Dfa {
+    initial: u32,
+    finals: BitSet,
+    state_count: u32,
+    alphabet_size: u16,
+    out_offsets: Vec<u32>,
+    out_symbols: Vec<u16>,
+    out_targets: Vec<u32>,
+    in_offsets: Vec<u32>,
+    in_sources: Vec<u32>,
+    in_symbols: Vec<u16>,
+}
+
+pub fn transition(&self, s: u32, a: u16) -> Option<u32> {
+    match symbols.binary_search(&a) {
+        Ok(idx) => Some(self.out_targets[start + idx]),
+        Err(_) => None, // implicit trap
+    }
+}
+\end{minted}
+\end{listing}
+
+Все публичные операции, возвращающие ДКА, пропускают результат через \texttt{finalize}: удаление бесполезных состояний (\texttt{trim}), минимизация алгоритмом Хопкрофта (\texttt{minimize}) и перенумерация состояний в диапазон $0 \ldots n-1$ с \texttt{initial}~$= 0$.
+
+Операции над автоматами и их назначение сведены в таблицу~\ref{tab:dfa-ops}.
+
+\begin{table}[htbp]
+\centering
+\caption{Операции над ДКА в модуле \texttt{automata}}
+\label{tab:dfa-ops}
+\small
+\begin{tabular}{@{}p{4.7cm}p{4.5cm}p{5.5cm}@{}}
+\toprule
+Операция & Реализация & Применение \\
+\midrule
+\texttt{union}, \texttt{intersection} & прямое произведение & построение сужений, residual \\
+\texttt{complement} & дополнение с явной ловушкой & residual, \texttt{annotation\_dfa} \\
+\texttt{concat\_many} & произведение конфигураций & построение ДКА шаблона \\
+\texttt{annotated\_union\_many} & объединение кортежей состояний & де-вложение скобок \\
+\texttt{minimize} & алгоритм Хопкрофта & канонизация после операций \\
+\texttt{includes} & $\Lang(\text{other}) \subseteq \Lang(self)$ & распознавание перекрытий \\
+\texttt{determinize} & построение подмножеств & детерминизация НКА \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Проверка включения языков (\texttt{includes}) реализована через пересечение \texttt{other} с дополнением \texttt{self}: язык включён тогда и только тогда, когда пересечение пусто.
+
+Аннотированное объединение (\inlisting{lst:annotated-union}) возвращает пару \texttt{(Dfa, Annotation)}.
+Тип \texttt{Annotation} хранит для каждого состояния объединения множество индексов операндов, в финальных состояниях которых автомат находится одновременно, а также флаг наличия полезного непринимающего состояния (для введения символа $\varnothing$ в алфавит).
+
+\begin{listing}[H]
+\caption{Аннотированное объединение ДКА}
+\label{lst:annotated-union}
+\begin{minted}{rust}
+pub struct Annotation {
+    pub annotations: HashMap<u32, HashSet<u16>>,
+    pub has_non_final_state: bool,
+}
+
+pub fn annotated_union_many(dfas: &[&Dfa]) -> AnnotatedDfa { ... }
+\end{minted}
+\end{listing}
+
+НКА используются исключительно как промежуточное представление при конкатенации через $\varepsilon$-переходы (\texttt{concat\_to\_nfa\_many}) и немедленно детерминизируются; в дальнейшем алгоритмах работа ведётся только с ДКА.
+
+\subsection{Реализация алгоритма обнаружения перекрытий}
+
+Распознавание перекрытий реализовано в модуле \texttt{sema::screening}.
+
+\subsubsection{Упрощённая задача}
+
+Алгоритм из \refAlgo{alg:pattern-narrowing} и \refAlgo{alg:simple-overlap} реализован функцией \texttt{screened\_patterns}, вызываемой через \texttt{screened\_patterns\_from\_fn} для всей функции.
+Pipeline следующий:
+\begin{enumerate}
+\item \texttt{abstractize\_from\_fn} --- получение абстрактных шаблонов и \texttt{PatternInfo};
+\item \texttt{forget\_constants} --- замена атомарных символов на \texttt{SVar} (константы могут \enq{искажать} язык при абстрактизации);
+\item \texttt{remove\_nesting} --- де-вложение скобок;
+\item построение ДКА для каждого шаблона;
+\item последовательная проверка включения языка в аккумулятор \texttt{acc}.
+\end{enumerate}
+
+Логика проверки приведена \inlisting{lst:screened-patterns}.
+
+\begin{listing}[H]
+\caption{Распознавание перекрытых предложений (упрощённая задача)}
+\label{lst:screened-patterns}
+\begin{minted}{rust}
+fn screened_patterns(patterns: &[(AbstractPattern, PatternInfo)])
+    -> HashSet<u16>
+{
+    let clean_patterns: Vec<_> = patterns
+        .iter().map(|p| p.0.forget_constants()).collect();
+    let (clean_patterns, alphabet_size) =
+        remove_nesting(&clean_patterns);
+    let dfas: Vec<Dfa> = clean_patterns.iter()
+        .map(|p| p.to_dfa(alphabet_size)).collect();
+
+    let mut acc = Dfa::of_empty_language(alphabet_size);
+    let mut result = HashSet::new();
+    for (i, (dfa, info)) in dfas.iter()
+        .zip(infos.iter()).enumerate()
+    {
+        if acc.includes(dfa) {
+            result.insert(i as u16);
+        }
+        if !info.had_repeated_variables
+            && !info.had_constants
+            && !info.had_condition
+        {
+            acc = acc.union(dfa);
+        }
+    }
+    result
+}
+\end{minted}
+\end{listing}
+
+В аккумулятор \texttt{acc} включаются языки только \enq{чистых} шаблонов --- тех, которые изначально удовлетворяли определению шаблонов $\patLang$ и не содержат условий (таблица~\ref{tab:pattern-info-acc}).
+
+\begin{table}[htbp]
+\centering
+\caption{Условия участия шаблона в аккумуляторе \texttt{acc}}
+\label{tab:pattern-info-acc}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Флаг \texttt{PatternInfo} & Влияние \\
+\midrule
+\texttt{had\_repeated\_variables} & шаблон не участвует в \texttt{acc} \\
+\texttt{had\_constants} & шаблон не участвует в \texttt{acc} \\
+\texttt{had\_condition} & шаблон не участвует в \texttt{acc} \\
+все флаги ложны & язык шаблона добавляется в \texttt{acc} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Полная задача}
+
+Алгоритм из \refAlgo{alg:full-overlap} реализован функцией \texttt{full\_screened\_patterns\_from\_fn}.
+Сначала вызывается упрощённая задача; затем для каждого перекрытого предложения~$i$ выполняется жадное удаление шаблонов $p_j$ ($j < i$) сверху вниз: на каждом шаге из множества кандидатов удаляется $p_j$, после чего пересчитываются сужения; если язык $i$-го сужения остаётся пустым, удаление сохраняется.
+В результате для каждого перекрытого предложения получается минимальное по включению множество индексов предшествующих шаблонов, \enq{ответственных} за перекрытие.
+Режим доступен пользователю через флаг \texttt{--full-screening} (подробнее --- в разделе~\ref{sec:user-guide}).
+
+% Пример вывода упрощённой задачи для функции с перекрывающимися предложениями показан \onfigure{fig:screening-output}.
+
+% \begin{figure}[H]
+% \centering
+% \fbox{\parbox{0.88\textwidth}{\centering\vspace{1.5cm}\textit{[Рисунок: пример вывода \texttt{diploma --basic-screening example.ref} для функции с перекрытиями]}\vspace{1.5cm}}}
+% \caption{Пример вывода режима упрощённого распознавания перекрытий}
+% \label{fig:screening-output}
+% \end{figure}
+
+\subsection{Реализация алгоритма извлечения документации}
+
+Извлечение документации реализовано в подмодуле \texttt{sema::docgen}, состоящем из пяти файлов: \texttt{mod.rs} (точка входа и политика ограничений), \texttt{prefix\_tree.rs} (построение дерева префиксов), \texttt{glue.rs} (рекурсивная склейка деревьев символов~$b_i$), \texttt{display.rs} (форматирование дерева префиксов в текстовую нотацию) и \texttt{infix.rs} (извлечение обязательных инфиксов).
+
+Точка входа --- функция \texttt{function\_documentation(func, \&DepthLimitPolicy)}, возвращающая для каждого предложения функции структуру \texttt{PatternDoc} с полями \texttt{index}, \texttt{screened}, \texttt{prefixes} и \texttt{mandatory\_infixes}.
+
+\subsubsection{Подготовка шаблонов}
+
+Перед построением документации выполняется \texttt{prepare\_patterns\_for\_documentation}: понижение уровня вложенности с сохранением \texttt{LevelData} и, при необходимости, \enq{забывание} содержимого глубоких скобок, если алфавит получается слишком большим.
+Если после понижения уровня вложенности размер алфавита достигает порога \texttt{MAX\_DOC\_ALPHABET}~$= 50$, содержимое подшаблонов на текущей максимальной глубине заменяется на \texttt{(e)}, после чего понижение уровня вложенности повторяется.
+
+\subsubsection{Построение сужений и деревьев префиксов}
+
+Для каждого шаблона~$i$ вычисляется ДКА сужения: $\Lang(\text{residual}_i) = \Lang(F_i) = \Lang(A_i) \setminus \bigcup_{j<i} \Lang(A_j)$, где объединение берётся только по \enq{чистым} шаблонам (аналогично алгоритму сужения).
+Если ДКА фактического языка  пуст, предложение помечается как \texttt{screened}.
+Иначе по сужению строится дерево обязательных префиксов.
+
+Основной цикл \inlisting{lst:docgen-loop}.
+
+\begin{listing}[H]
+\caption{Цикл извлечения документации для предложений функции}
+\label{lst:docgen-loop}
+\begin{minted}{rust}
+for (i, (dfa, info)) in dfas.iter()
+    .zip(infos.iter()).enumerate()
+{
+    let residual = dfa.intersection(&acc.complement());
+    if residual.is_empty() {
+        out.push(PatternDoc { screened: true, ... });
+    } else {
+        let tree = build_documentation_prefix_tree(
+            &levels, max_depth, &residual, policy);
+        let prefixes = format_documentation_prefix_tree(&tree);
+        let mandatory_infixes =
+            mandatory_infixes(&levels, dfa, &residual, &infix_limits);
+        out.push(PatternDoc { screened: false, ... });
+    }
+    if !info.had_repeated_variables
+        && !info.had_constants && !info.had_condition
+    {
+        acc = acc.union(dfa);
+    }
+}
+\end{minted}
+\end{listing}
+
+Функция \texttt{build\_prefix\_tree} выполняет обход в ширину по ДКА, группируя переходы с общей целью в один сегмент дерева (символы \texttt{t}, \texttt{s}, \texttt{(e)} или \texttt{[b\textsubscript{i}\,\ldots]}).
+Расширение останавливается при достижении пределов \texttt{PrefixTreeLimits}: суммарной степени ветвления вдоль ветки и глубины ветки. Предел нужен для корректной обработки больших ДКА, иначе 
+префиксное дерево слишком разрастается и может привести к зависанию программы.
+
+Функция \texttt{build\_documentation\_prefix\_tree} (\texttt{glue.rs}) рекурсивно \enq{склеивает} деревья символов~$b_i$, восстанавливая язык каждого символа через \texttt{annotation\_dfa} и данные \texttt{LevelData}.
+
+\subsubsection{Обязательные инфиксы}
+
+Извлечение обязательных инфиксов (\texttt{infix.rs}) представляет ДКА как граф (кратные рёбра схлопываются) и находит мосты --- рёбра, удаление которых увеличивает число компонент связности.
+Дополнительно проверяется, что ни одно финальное состояние не достижимо без прохождения \enq{начала} моста (\texttt{is\_mandatory\_directed\_bridge}).
+Множество найденных инфиксов фильтруется функцией \texttt{filter\_minimal\_infixes}, удаляющей инфиксы, являющиеся подстроками других.
+
+\subsubsection{Эвристики ограничения размера}
+
+Политика \texttt{DepthLimitPolicy} задаёт зависимость пределов степени ветвления и длины ветки от уровня вложенности (таблица~\ref{tab:depth-policy}).
+Чем глубже уровень (ближе к листьям скобочной структуры), тем сильнее ограничивается fanout и слабее --- длина ветки; к корню наблюдается обратная тенденция.
+Пользователь может переопределить базовые значения через флаги \texttt{--fanout} и \texttt{--depth}.
+
+\begin{table}[htbp]
+\centering
+\caption{Параметры \texttt{DepthLimitPolicy} и соответствующие флаги CLI}
+\label{tab:depth-policy}
+\begin{tabular}{@{}l>{\centering\arraybackslash}p{2.1cm}l>{\raggedright\arraybackslash}p{5.8cm}@{}}
+\toprule
+Поле & \shortstack{Искомое\\значение} & CLI-флаг & Смысл \\
+\midrule
+\texttt{base\_fanout} & 4 & \texttt{--fanout} & степень ветвления на глубочайшем уровне \\
+\texttt{fanout\_step} & 2 & --- & приращение степени ветвления на уровень вверх \\
+\texttt{deepest\_length} & 8 & \texttt{--depth} & длина ветки на глубочайшем уровне \\
+\texttt{length\_step} & 2 & --- & уменьшение длины на уровень вверх \\
+\texttt{min\_length} & 2 & --- & минимальная длина ветки \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Метод \texttt{DepthLimitPolicy::limits(depth, max\_depth)} вычисляет конкретные \texttt{PrefixTreeLimits} для заданного уровня вложенности.
+
+\subsection{Руководство пользователя}
+\label{sec:user-guide}
+
+\subsubsection{Получение и сборка}
+
+Для сборки необходим установленный компилятор Rust (рекомендуется стабильная версия).
+Из корневого каталога проекта выполните:
+\begin{verbatim}
+cargo build --release
+\end{verbatim}
+Исполняемый файл будет помещён в каталог \texttt{target/release/} и называться \texttt{diploma}.
+
+\subsubsection{Запуск}
+
+Приложение принимает путь к файлу с исходным кодом на \RL\ и один из трёх режимов работы.
+Синтаксис вызова:
+\begin{verbatim}
+diploma --basic-screening <file.ref>
+diploma --full-screening  <file.ref>
+diploma --doc <file.ref> [--fanout N] [--depth N]
+\end{verbatim}
+
+Режим \texttt{--basic-screening} решает упрощённую задачу распознавания перекрытий и выводит номера перекрытых предложений для каждой функции файла.
+Режим \texttt{--full-screening} решает полную задачу и дополнительно указывает минимальные множества предшествующих шаблонов, вызвавших перекрытие.
+Режим \texttt{--doc} извлекает документацию: для каждого неперекрытого предложения --- список обязательных префиксов и, при наличии, обязательных инфиксов.
+Параметры \texttt{--fanout} и \texttt{--depth} управляют эвристиками ограничения размера деревьев префиксов (см.~таблицу~\ref{tab:depth-policy}).
+
+\subsubsection{Пример использования}
+
+Рассмотрим функцию \texttt{h} из \inlisting{lst:overlap-example}.
+
+\begin{listing}[H]
+\caption{Пример функции с экранированием}
+\label{lst:overlap-example}
+\begin{minted}{refal}
+h {
+  e.x s.1 s.2 e.y = ...;
+  e.x (e.3) s.4 e.y = ...;
+  e.x (e.5) = ...;
+  e.x s.6 (e.7) e.y = ...;
+}
+\end{minted}
+\end{listing}
+
+Положим, эта функция находится в файле \texttt{example.ref}.
+Тогда запуск \texttt{diploma --basic-screening example.ref} может выдаст:
+\begin{verbatim}
+Function h — WARNING:
+sentence #4 is screened
+\end{verbatim}
+
+При успешном выполнении программа возвращает код~0; при ошибке чтения файла, синтаксического разбора или некорректных аргументов --- код~1.
 
 \section{Аналитическая часть}
 % WiP
