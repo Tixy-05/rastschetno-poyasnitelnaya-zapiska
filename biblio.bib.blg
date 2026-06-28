@@ -1,0 +1,12 @@
+[0] Config.pm:306> INFO - This is Biber 2.18 running in TOOL mode
+[0] Config.pm:309> INFO - Logfile is 'biblio.bib.blg'
+[55] biber:340> INFO - === Sun Jun 28, 2026, 16:52:43
+[76] Biber.pm:4588> INFO - Looking for bibtex file 'biblio.bib'
+[77] bibtex.pm:1713> INFO - LaTeX decoding ...
+[83] bibtex.pm:1518> INFO - Found BibTeX data source 'biblio.bib'
+[128] UCollate.pm:68> INFO - Overriding locale 'en_US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[128] UCollate.pm:68> INFO - Overriding locale 'en_US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[128] Biber.pm:4221> INFO - Sorting list 'tool/global//global/global' of type 'entry' with template 'tool' and locale 'en_US'
+[128] Biber.pm:4227> INFO - No sort tailoring available for locale 'en_US'
+[131] bibtex.pm:439> INFO - Writing 'biblio_bibertool.bib' with encoding 'UTF-8'
+[131] bibtex.pm:479> INFO - Output to biblio_bibertool.bib
