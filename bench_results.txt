@@ -1,0 +1,167 @@
+warning: unused import: `NfaBuilder`
+ --> src/sema/automata/mod.rs:7:20
+  |
+7 | pub use nfa::{Nfa, NfaBuilder};
+  |                    ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `DfaBridge`
+  --> src/sema/automata/mod.rs:10:70
+   |
+10 | pub use ops::bridges::{is_mandatory_directed_bridge, useful_bridges, DfaBridge, MandatoryBridgeLimits};
+   |                                                                      ^^^^^^^^^
+
+warning: unused import: `annotated_union_annotation_for_screening`
+ --> src/sema/cascade_screening.rs:9:5
+  |
+9 |     annotated_union_annotation_for_screening, annotated_union_phase_times, AnnotatedUnionPhaseTimes,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: field `source` is never read
+  --> src/parser/mod.rs:41:5
+   |
+40 | struct Parser<'a> {
+   |        ------ field in this struct
+41 |     source: &'a str,
+   |     ^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: methods `state_count` and `alphabet_size` are never used
+  --> src/sema/automata/nfa.rs:22:19
+   |
+21 | impl Nfa {
+   | -------- methods in this implementation
+22 |     pub(crate) fn state_count(&self) -> u32 {
+   |                   ^^^^^^^^^^^
+...
+26 |     pub(crate) fn alphabet_size(&self) -> u16 {
+   |                   ^^^^^^^^^^^^^
+
+warning: associated function `with_state_count` is never used
+   --> src/sema/automata/nfa.rs:137:12
+    |
+126 | impl NfaBuilder {
+    | --------------- associated function in this implementation
+...
+137 |     pub fn with_state_count(state_count: usize, alphabet_size: u16) -> Self {
+    |            ^^^^^^^^^^^^^^^^
+
+warning: function `concat` is never used
+   --> src/sema/automata/ops/concat.rs:140:15
+    |
+140 | pub(crate) fn concat(a: &Dfa, b: &Dfa) -> Dfa {
+    |               ^^^^^^
+
+warning: function `determinize` is never used
+ --> src/sema/automata/ops/determinize.rs:5:15
+  |
+5 | pub(crate) fn determinize(nfa: &Nfa) -> Dfa {
+  |               ^^^^^^^^^^^
+
+warning: function `collect_from_right_part` is never used
+   --> src/sema/abstract_patterns/pattern.rs:419:4
+    |
+419 | fn collect_from_right_part(right: &RightPart, out: &mut Vec<(AbstractPattern, PatternInfo)>) {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `collect_from_result_ex` is never used
+   --> src/sema/abstract_patterns/pattern.rs:447:4
+    |
+447 | fn collect_from_result_ex(result_ex: &ResultEx, out: &mut Vec<(AbstractPattern, PatternInfo)>) {
+    |    ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `collect_from_result` is never used
+   --> src/sema/abstract_patterns/pattern.rs:454:4
+    |
+454 | fn collect_from_result(result: &Result, out: &mut Vec<(AbstractPattern, PatternInfo)>) {
+    |    ^^^^^^^^^^^^^^^^^^^
+
+warning: variant `Keep` is never constructed
+  --> src/sema/docgen/trim.rs:19:5
+   |
+15 | enum CollapseAction {
+   |      -------------- variant in this enum
+...
+19 |     Keep,
+   |     ^^^^
+   |
+   = note: `CollapseAction` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `0` is never read
+  --> src/types.rs:13:16
+   |
+13 | pub struct Uri(String);
+   |            --- ^^^^^^
+   |            |
+   |            field in this struct
+   |
+   = help: consider removing this field
+
+warning: `diploma` (lib) generated 13 warnings (run `cargo fix --lib -p diploma` to apply 3 suggestions)
+warning: field `max_level0_states` is never read
+  --> src/bin/screening_bench.rs:30:5
+   |
+21 | struct FnRecord {
+   |        -------- field in this struct
+...
+30 |     max_level0_states: u32,
+   |     ^^^^^^^^^^^^^^^^^
+   |
+   = note: `FnRecord` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: field `project` is never read
+   --> src/bin/screening_bench.rs:111:5
+    |
+110 | struct FnTiming {
+    |        -------- field in this struct
+111 |     project: String,
+    |     ^^^^^^^
+    |
+    = note: `FnTiming` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+
+warning: `diploma` (bin "screening_bench") generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.01s
+     Running `/tmp/cursor-sandbox-cache/015c3651febad97ded00d949a062654f/cargo-target/release/screening_bench --bench --warmup 10 --iterations 100`
+Screening performance benchmark
+=============================
+Corpus:             refal_test/real_projects (refal-5-lambda without autotests)
+Warmup iterations:  10
+Measured iterations:100
+Files:              163
+  MSCP-A: 47 files
+  refal-5-lambda: 79 files
+  scp4: 37 files
+  MSCP-A: 781 functions
+  refal-5-lambda: 1676 functions
+  scp4: 2363 functions
+Functions total:    4820
+
+Corpus total time (seconds), 95% CI (Student's t):
+  --basic-screening: mean 2.4122  CI [2.3842, 2.4403]  std 0.1407
+  --full-screening:  mean 2.3936  CI [2.3656, 2.4216]  std 0.1402
+  full/basic ratio:  mean 0.992
+
+Per-function snapshot (single run after warmup):
+  basic mean 0.000463s  median 0.000092s  p95 0.001109s
+  full  mean 0.000453s  median 0.000084s  p95 0.001106s
+
+Top 15 functions by --basic-screening time:
+location                                           basic_ms    full_ms  sents   alph screen  Σstates
+real_projects/refal-5-lambda/src/compiler/HighLevelRASL-GenSubst-Simple.ref::DoGenSubst   221.081   218.427     37     59      0      242
+real_projects/refal-5-lambda/src/compiler/HighLevelRASL-GenSubst-Save.ref::DoGenSubst   219.435   218.846     37     59      0      242
+real_projects/scp4/comparet.ref::Red               139.087   141.439     44    475      0      175
+real_projects/refal-5-lambda/src/compiler/GenericMatch.ref::Solve-SymmClashes-Aux    83.257    84.699     53     58      0      264
+real_projects/scp4/drive.ref::RigitMatch            57.266    57.204     27    329      0       80
+real_projects/scp4/difful4.ref::CCDRT               35.798    36.192     98     17      0      810
+real_projects/scp4/inref4.ref::TAWAYL               30.872    30.361     37     22      0      222
+real_projects/scp4/inref4.ref::APPL1                23.452    23.429     35     22      0      166
+real_projects/MSCP-A/accessMSCP.ref::DeleteDoubleEqs    16.541    16.832      3      4      0        6
+real_projects/refal-5-lambda/src/compiler/GenericMatch.ref::Solve-Clashes    16.532    16.897     31     19      0      153
+real_projects/scp4/analyse.ref::UnBr                12.892    12.827     11     33      0       37
+real_projects/refal-5-lambda/src/rsl-decompiler/rsl-decompiler.ref::Decompile-Pattern-Hole    12.477    12.538     31     16      0      219
+real_projects/MSCP-A/Drive.ref::GenerateNextLevel    10.820    10.968      7     33      0       84
+real_projects/scp4/mst.ref::MST-Parse               10.264     9.946     48     15      0      217
+real_projects/MSCP-A/Generalize.ref::WeightMGU      10.075    10.128     23     24      0       68
