@@ -970,7 +970,7 @@ $d-k$ уровней, где $d$ --- глубина наиболее вложе�
         \{1, 2\} &\mapsto b_1 \\
         \{2\}    &\mapsto b_2 \\
         \varnothing &\mapsto b_0 \\[0.2em]
-        \Gamma_1 &= \{b_0, b_1, b_2\}
+        \Gamma_2 &= \{s, b_0, b_1, b_2\}
       \end{aligned}$};
   \end{tikzpicture}
   \end{adjustbox}
@@ -1035,7 +1035,7 @@ $d-k$ уровней, где $d$ --- глубина наиболее вложе�
       \node[font=\scriptsize, below=3pt of rB] {$\{B\}$};
 
       \path[->]
-        (r0) edge node[midway, left=-1pt] {\edgelabel{$b_2, b_0$}} (r1)
+        (r0) edge node[midway, left=-1pt] {\edgelabel{$s, b_2, b_0$}} (r1)
         (r0) edge node[pos=0.42, right=-1pt] {\edgelabel{$b_1, b_3$}} (r2)
         (r1) edge node[midway, left=-1pt] {\edgelabel{$b_2$}} (rA)
         (r2) edge[bend left=18] node[pos=0.45, above=1pt] {\edgelabel{$b_2$}} (rA)
@@ -1049,7 +1049,7 @@ $d-k$ уровней, где $d$ --- глубина наиболее вложе�
         \{\mathrm{I}\}               &\mapsto b_2 \\
         \{\mathrm{II}\}              &\mapsto b_3 \\
         \varnothing                   &\mapsto b_0 \\[0.2em]
-        \Gamma_1 &= \{b_0, b_1, b_2, b_3\}
+        \Gamma_1 &= \{s, b_0, b_1, b_2, b_3\}
       \end{aligned}$};
   \end{tikzpicture}
   \end{adjustbox}
@@ -1488,7 +1488,8 @@ $(\gamma_1 \mid \gamma_2 \mid \cdots \mid \gamma_m)$ автомат будет �
 
 Процедура \textsc{ДеревоСимвола} для символа~$b$ на уровне~$d$ строит ДКА языка, аннотированного символом~$b$, выполняет для него \textsc{ОбходВШирину} с лимитами $\pi.\mathit{limits}(d, d_{\max})$, рекурсивно склеивает вложенные символы~$b_j$ и сохраняет результат в кэше~$\mathcal{C}$.
 
-Алгоритм извлечения обязательных инфиксов работает с ДКА как с графом, при этом кратные ребра схлопываются в одно. Псевдокод приведён \inlisting{alg:mandatory-infixes}.
+Алгоритм извлечения обязательных инфиксов работает с ДКА как с графом, при этом кратные ребра схлопываются в одно. Псевдокод приведён \inlisting{alg:mandatory-infixes}. Алгоритм поиска мостов --- 
+классический алгоритм Тарьяна.
 
 \begin{algorithm}[H]
 \caption{Извлечение обязательных инфиксов}
@@ -1959,6 +1960,147 @@ sentence #4 is screened
 При успешном выполнении программа возвращает код~0; при ошибке чтения файла, синтаксического разбора или некорректных аргументов --- код~1.
 
 \section{Аналитическая часть}
+
+\subsection{Анализ размеров ДКА и алфавита}
+
+Анализ проводился на том же корпусе программ, что указан в конструкторской части. 
+Одна и та же статистика собиралась с разного подмножества функций. В первый раз в статистике 
+учитывались все функции корпуса полностью. В другой раз был учтены только \enq{хорошие} 
+функции, у которых половина и более шаблонов вносят вклад в сужение шаблонов ниже.
+
+Размер ДКА и алфавитов --- это ключевые параметры, влияющие на производительность алгоритмов.
+Начнем с анализа ДКА. Среди них наибольший интерес представляют ДКА сужений, так как именно с 
+ними выполняется наибольшее число различных. Стоит отметить, что размер самих ДКА 0-шаблонов 
+не так интересен, т.к. число состояний в минимальном ДКА шаблона всегда не больше его длины. 
+Гистограммы числа состояний сужений для всех функций корпуса и для \enq{хороших} функций 
+представлены на рисунках \ref{fig:hist-residual-states-all} и~\ref{fig:hist-residual-states-good} соответственно.
+
+\begin{figure}[H]
+\centering
+\subfloat[все функции корпуса\label{fig:hist-residual-states-all}]{%
+  \includegraphics[width=0.48\textwidth]{../stats/corpus/all/hist_residual_states.png}%
+}
+\hfill
+\subfloat[\enq{хорошие} функции\label{fig:hist-residual-states-good}]{%
+  \includegraphics[width=0.48\textwidth]{../stats/corpus/good/hist_residual_states.png}%
+}
+\caption{Гистограмма числа состояний остаточного ДКА.}
+\label{fig:hist-residual-states}
+\end{figure}
+
+Для удобства визуального восприятия используется логарифмическая шкала по вертикальной оси: 
+абсолютное большинство (более 99\%) ДКА сужений имеют не более 20 состояний. Схожая форма 
+гистограммы наблюдается для обеих множеств функций, причем наибольшая разница между 
+гистограммами наблюдается слева. Это обусловлено тем, что большие ДКА фактического языка 
+порождают преимущественно функции, 
+большая часть шаблонов в которых вносит вклад в сужение языка, а для функций, в которых, 
+например, много условий, размеры ДКА сужений совпадают меньше. 
+
+На правом конце гистограммы для всех функций виден исключительный случай --- один ДКА 
+с размером 70-74 состояния. Этот выброс относится к функции \texttt{ResetFuncName} из проекта SCP4, в частности, к ее первому предложению, вид которого приведен \inlisting{lst:reset-func-name}.
+
+\begin{listing}[H]
+\caption{Часть функции \texttt{ResetFuncName} из проекта SCP4}
+\label{lst:reset-func-name}
+\begin{minted}{refal}
+  ResetFuncName {
+    s.newName s.old s.new '/*** This comments is needed for Graph- to C- code of transforme ***/' = ...;
+    s.newName s.old s.new 0 = ...;
+    s.newName s.old s.new e.1 0 = ...;
+    s.newName s.old s.new e.1 = ...;
+  }
+\end{minted}
+\end{listing}
+
+Из-за последовательности констант в конце шаблона первого предложения, сужение автомата шаблона, совпадающее в данном случае с самим ДКА шаблона, имеет по состоянию на каждый символ последовательности в кавычках, что и приводит к такому размеру ДКА.
+
+Гистограммы числа состояний ДКА шаблонов уровня~0 приведены \refImage{fig:hist-level0-states-all} и~\refImage{fig:hist-level0-states-good}.
+
+\begin{figure}[H]
+\centering
+\subfloat[все функции корпуса\label{fig:hist-level0-states-all}]{%
+  \includegraphics[width=0.48\textwidth]{../stats/corpus/all/hist_level0_states.png}%
+}
+\hfill
+\subfloat[\enq{хорошие} функции\label{fig:hist-level0-states-good}]{%
+  \includegraphics[width=0.48\textwidth]{../stats/corpus/good/hist_level0_states.png}%
+}
+\caption{Гистограмма числа состояний ДКА шаблона уровня~0.}
+\label{fig:hist-level0-states}
+\end{figure}
+
+Гистограммы числа состояний ДКА промежуточных подшаблонов приведены \refImage{fig:hist-intermediate-states-all} и~\refImage{fig:hist-intermediate-states-good}.
+
+\begin{figure}[H]
+\centering
+\subfloat[все функции корпуса\label{fig:hist-intermediate-states-all}]{%
+  \includegraphics[width=0.48\textwidth]{../stats/corpus/all/hist_intermediate_states.png}%
+}
+\hfill
+\subfloat[\enq{хорошие} функции\label{fig:hist-intermediate-states-good}]{%
+  \includegraphics[width=0.48\textwidth]{../stats/corpus/good/hist_intermediate_states.png}%
+}
+\caption{Гистограмма числа состояний ДКА промежуточного подшаблона.}
+\label{fig:hist-intermediate-states}
+\end{figure}
+
+Перейдем к анализу алфавитов. Гистограммы размеров алфавитов ДКА шаблонов уровня~0 и промежуточных подшаблонов приведены \refImage{fig:hist-level0-alphabet-all}, \refImage{fig:hist-level0-alphabet-good}, \refImage{fig:hist-intermediate-alphabet-all} и~\refImage{fig:hist-intermediate-alphabet-good} соответственно.
+
+\begin{figure}[H]
+\centering
+\subfloat[все функции корпуса\label{fig:hist-level0-alphabet-all}]{%
+  \includegraphics[width=0.48\textwidth]{../stats/corpus/all/hist_level0_alphabet.png}%
+}
+\hfill
+\subfloat[\enq{хорошие} функции\label{fig:hist-level0-alphabet-good}]{%
+  \includegraphics[width=0.48\textwidth]{../stats/corpus/good/hist_level0_alphabet.png}%
+}
+\caption{Гистограмма размера алфавита ДКА шаблона уровня~0.}
+\label{fig:hist-level0-alphabet}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\subfloat[все функции корпуса\label{fig:hist-intermediate-alphabet-all}]{%
+  \includegraphics[width=0.48\textwidth]{../stats/corpus/all/hist_intermediate_alphabet.png}%
+}
+\hfill
+\subfloat[\enq{хорошие} функции\label{fig:hist-intermediate-alphabet-good}]{%
+  \includegraphics[width=0.48\textwidth]{../stats/corpus/good/hist_intermediate_alphabet.png}%
+}
+\caption{Гистограмма размера алфавита ДКА промежуточного подшаблона.}
+\label{fig:hist-intermediate-alphabet}
+\end{figure}
+
+Наконец, на рисунках~\ref{fig:hist-level0-alphabet-per-fn-all} и~\ref{fig:hist-level0-alphabet-per-fn-good} показаны распределения суммарного размера алфавита уровня~0 по функциям, а на рисунках~\ref{fig:hist-intermediate-alphabet-per-fn-all} и~\ref{fig:hist-intermediate-alphabet-per-fn-good} --- аналогичные распределения для промежуточных уровней.
+
+\begin{figure}[H]
+\centering
+\subfloat[все функции корпуса\label{fig:hist-level0-alphabet-per-fn-all}]{%
+  \includegraphics[width=0.48\textwidth]{../stats/corpus/all/hist_level0_alphabet_per_fn.png}%
+}
+\hfill
+\subfloat[\enq{хорошие} функции\label{fig:hist-level0-alphabet-per-fn-good}]{%
+  \includegraphics[width=0.48\textwidth]{../stats/corpus/good/hist_level0_alphabet_per_fn.png}%
+}
+\caption{Гистограмма размера алфавита уровня~0 (на функцию).}
+\label{fig:hist-level0-alphabet-per-fn}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\subfloat[все функции корпуса\label{fig:hist-intermediate-alphabet-per-fn-all}]{%
+  \includegraphics[width=0.48\textwidth]{../stats/corpus/all/hist_intermediate_alphabet_per_fn.png}%
+}
+\hfill
+\subfloat[\enq{хорошие} функции\label{fig:hist-intermediate-alphabet-per-fn-good}]{%
+  \includegraphics[width=0.48\textwidth]{../stats/corpus/good/hist_intermediate_alphabet_per_fn.png}%
+}
+\caption{Гистограмма размера алфавита промежуточного уровня (на функцию).}
+\label{fig:hist-intermediate-alphabet-per-fn}
+\end{figure}
+
+\subsection{Тест производительности}
 % WiP
 
 \anonsection{ЗАКЛЮЧЕНИЕ} % 1 стр.
