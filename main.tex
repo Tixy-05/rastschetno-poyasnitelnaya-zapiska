@@ -648,13 +648,13 @@ $d-k$ уровней, где $d$ --- глубина наиболее вложе�
     \node[state, no close state] (n13) at (c1 |- r3) {};
     \node[state, lift state]  (n02) at (c0 |- r2) {};
     \node[state]              (n12) at (c1 |- r2) {};
-    \node[state, no close state, accepting] (n22) at (c2 |- r2) {$3$};
+    \node[state, no close state, accepting] (n22) at (c2 |- r0) {$3$};
     \node[state, no close state] (n01) at (c0 |- r1) {};
     \node[state]              (n11) at (c1 |- r1) {};
     \node[state, no close state] (n21) at (c2 |- r1) {};
     \node[state, no close state, accepting] (n00) at (c0 |- r0) {$2$};
     \node[font=\scriptsize, above=3pt of n24] {$\{\mathrm{I}\}$};
-    \node[font=\scriptsize, right=3pt of n22] {$\{\mathrm{I},\,\mathrm{II}\}$};
+    \node[font=\scriptsize, below=3pt of n22] {$\{\mathrm{I},\,\mathrm{II}\}$};
     \node[font=\scriptsize, below=3pt of n00] {$\{\mathrm{II}\}$};
 
     \path[->]
@@ -672,21 +672,21 @@ $d-k$ уровней, где $d$ --- глубина наиболее вложе�
       (n02) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$s$}} ()
       (n02) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (n12)
       (n12) edge node[midway, left=-1pt] {\edgelabel{$\litrep;\,\overline{1,2}$}} (n13)
-      (n22) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (n12)
-      (n21) edge node[midway, left=-1pt] {\edgelabel{$s$}} (n22)
-      (n12) edge[bend left=22] node[pos=0.42, right=-1pt] {\edgelabel{$\litrep;\,2$}} (n01)
+      (n21) edge node[midway, right=-1pt] {\edgelabel{$s$}} (n22)
       (n12) edge node[pos=0.42, right=-1pt] {\edgelabel{$\litrep;\,1$}} (n21)
       (n11) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litrep;\,1$}} (n21)
-      (n21) edge[bend left=15] node[pos=0.45, below=1pt] {\edgelabel{$\litparen$}} (n11)
-      (n01) edge[bend left=22] node[pos=0.42, below=2pt] {\edgelabel{$\litparen$}} (n12)
+      (n21) edge[bend left=15] node[pos=0.45, below=-0.2pt, xshift=7.5pt] {\edgelabel{$\litparen$}} (n11)
+      (n11) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litrep;\,\overline{1}$}} (n01)
+      (n01) edge[bend right=15] node[pos=0.45, below=1pt] {\edgelabel{$\litparen$}} (n11)
       (n01) edge node[midway, left=-1pt] {\edgelabel{$s$}} (n00)
       (n00) edge[bend right=20] node[pos=0.5, below=-1pt, right=1pt] {\edgelabel{$\litparen$}} (n11)
       (n00) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$s$}} ();
-    \draw[->] (n22.south east)
-      .. controls ($(n22.south east)+(0.55cm,-0.25cm)$)
-                  and ($(n21.east)+(2.2cm,-0.9cm)$) ..
-      node[pos=0.46, right=1pt] {\edgelabel{$s$}} (n00.east);
-    \draw[->] (n11.west) -- node[below=1pt, pos=0.34, xshift=-2pt, anchor=north] {\edgelabel{$\litrep;\,\overline{1}$}} (n01.east);
+    \draw[->] (n12.south west) to[bend right=22]
+      node[pos=0.45, above=3pt] {\edgelabel{$\litrep;\,2$}} (n01.north east);
+    \draw[->] (n22.north west) to[bend right=22]
+      node[pos=0.2, left=2pt] {\edgelabel{$\litparen$}} (n11.south east);
+    \draw[->] (n22.west) to[bend left=15]
+      node[pos=0.5, above=3pt] {\edgelabel{$s$}} (n00.east);
     \end{scope}
   \end{tikzpicture}
   \end{adjustbox}
@@ -731,6 +731,8 @@ $d-k$ уровней, где $d$ --- глубина наиболее вложе�
         (q2) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (q4)
         (q3) edge node[midway, left=-1pt] {\edgelabel{$s$}} (qB)
         (q4) edge node[midway, right=-1pt] {\edgelabel{$\litrep;\,1$}} (qA);
+      \draw[->] (q0.east) to[bend left=22]
+        node[pos=0.5, above=3pt] {\edgelabel{$s$}} (q2.north);
       \draw[->] (q3.east) to[out=0, in=225, looseness=0.85]
         node[pos=0.48, below=1pt] {\edgelabel{$\litparen$}} (q4.south west);
     \end{scope}
@@ -871,13 +873,13 @@ $d-k$ уровней, где $d$ --- глубина наиболее вложе�
     \node[state, no close state] (n13) at (c1 |- r3) {};
     \node[state, lift state]  (n02) at (c0 |- r2) {};
     \node[state]              (n12) at (c1 |- r2) {};
-    \node[state, no close state, accepting] (n22) at (c2 |- r2) {$3$};
+    \node[state, no close state, accepting] (n22) at (c2 |- r0) {$3$};
     \node[state, no close state] (n01) at (c0 |- r1) {};
     \node[state]              (n11) at (c1 |- r1) {};
     \node[state, no close state] (n21) at (c2 |- r1) {};
     \node[state, no close state, accepting] (n00) at (c0 |- r0) {$2$};
     \node[font=\scriptsize, above=3pt of n24] {$\{\mathrm{I}\}$};
-    \node[font=\scriptsize, right=3pt of n22] {$\{\mathrm{I},\,\mathrm{II}\}$};
+    \node[font=\scriptsize, below=3pt of n22] {$\{\mathrm{I},\,\mathrm{II}\}$};
     \node[font=\scriptsize, below=3pt of n00] {$\{\mathrm{II}\}$};
 
     \path[->]
@@ -895,21 +897,21 @@ $d-k$ уровней, где $d$ --- глубина наиболее вложе�
       (n02) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$s$}} ()
       (n02) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (n12)
       (n12) edge node[midway, left=-1pt] {\edgelabel{$\litrep;\,\overline{1,2}$}} (n13)
-      (n22) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (n12)
-      (n21) edge node[midway, left=-1pt] {\edgelabel{$s$}} (n22)
-      (n12) edge[bend left=22] node[pos=0.42, right=-1pt] {\edgelabel{$\litrep;\,2$}} (n01)
+      (n21) edge node[midway, right=-1pt] {\edgelabel{$s$}} (n22)
       (n12) edge node[pos=0.42, right=-1pt] {\edgelabel{$\litrep;\,1$}} (n21)
       (n11) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litrep;\,1$}} (n21)
-      (n21) edge[bend left=15] node[pos=0.45, below=1pt] {\edgelabel{$\litparen$}} (n11)
-      (n01) edge[bend left=22] node[pos=0.42, below=2pt] {\edgelabel{$\litparen$}} (n12)
+      (n21) edge[bend left=15] node[pos=0.45, below=0.5pt, xshift=2.5pt] {\edgelabel{$\litparen$}} (n11)
+      (n11) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litrep;\,\overline{1}$}} (n01)
+      (n01) edge[bend right=15] node[pos=0.45, below=1pt] {\edgelabel{$\litparen$}} (n11)
       (n01) edge node[midway, left=-1pt] {\edgelabel{$s$}} (n00)
       (n00) edge[bend right=20] node[pos=0.5, below=-1pt, right=1pt] {\edgelabel{$\litparen$}} (n11)
       (n00) edge[loop left] node[pos=0.12, left=5pt] {\edgelabel{$s$}} ();
-    \draw[->] (n22.south east)
-      .. controls ($(n22.south east)+(0.55cm,-0.25cm)$)
-                  and ($(n21.east)+(2.2cm,-0.9cm)$) ..
-      node[pos=0.46, right=1pt] {\edgelabel{$s$}} (n00.east);
-    \draw[->] (n11.west) -- node[below=1pt, pos=0.34, xshift=-2pt, anchor=north] {\edgelabel{$\litrep;\,\overline{1}$}} (n01.east);
+    \draw[->] (n12.south west) to[bend right=22]
+      node[pos=0.45, above=3pt] {\edgelabel{$\litrep;\,2$}} (n01.north east);
+    \draw[->] (n22.north west) to[bend right=22]
+      node[pos=0.2, left=2pt] {\edgelabel{$\litparen$}} (n11.south east);
+    \draw[->] (n22.west) to[bend left=15]
+      node[pos=0.5, above=3pt] {\edgelabel{$s$}} (n00.east);
     \end{scope}
 
     \begin{scope}[xshift=8.6cm]
@@ -1014,6 +1016,8 @@ $d-k$ уровней, где $d$ --- глубина наиболее вложе�
         (q2) edge node[pos=0.55, above=-1pt] {\edgelabel{$\litparen$}} (q4)
         (q3) edge node[midway, left=-1pt] {\edgelabel{$s$}} (qB)
         (q4) edge node[midway, right=-1pt] {\edgelabel{$\litrep;\,1$}} (qA);
+      \draw[->] (q0.east) to[bend left=22]
+        node[pos=0.5, above=3pt] {\edgelabel{$s$}} (q2.north);
       \draw[->] (q3.east) to[out=0, in=225, looseness=0.85]
         node[pos=0.48, below=1pt] {\edgelabel{$\litparen$}} (q4.south west);
     \end{scope}
